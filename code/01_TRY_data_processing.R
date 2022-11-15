@@ -7,31 +7,20 @@
 
 ### load libraries
 library(dplyr)
+library(tidyverse)
 require(data.table)
 
 
 ### set paths to data files
-workdir <- ""
-path_gf <- ""
+workdir <- getwd()
+path_try <- "./data/13238.txt"
 
 
 ### read data
 setwd(workdir)
 
-## TRY growth form data
-gf <- fread(path_gf, header = T, sep = ",", fill = TRUE, dec = ".", quote = "", 
-            data.table = T, select = c("AccSpeciesName", "PlantGrowthForm"))
-head(gf)
-
-# remove missing growth form data
-gf <- gf[gf$PlantGrowthForm != "",]
-
-# remove double entries of species name
-gf <- gf %>% distinct(AccSpeciesName, .keep_all = TRUE)
-dim(gf)
-
 ## plant functional trait data
-trydat <- fread("try.txt", header = T, sep = "\t", dec = ".", quote = "", 
+trydat <- fread(path_try, header = T, sep = "\t", dec = ".", quote = "", 
                 data.table = T, select = c("DataID", "AccSpeciesName", "StdValue", "UnitName", "TraitID", "TraitName", "ErrorRisk"))
 head(trydat)
 dim(trydat)
@@ -44,26 +33,29 @@ trydat <- trydat[!(trydat$ErrorRisk >= 4), ]
 ## remove TraitID = NA indicating missing observations
 trydat <- subset(trydat, !is.na(trydat$TraitID))
 
-## group by AccSpeciesName (species name) and Trait ID (plant functional trait), compute mean and SD
-agg <- trydat %>%
-  group_by(AccSpeciesName, TraitID) %>%
-  summarize(mean = mean(StdValue, na.rm = TRUE),
-            stddev = sd(StdValue, na.rm = TRUE))
-
-## convert to dataframe
-agg <- as.data.frame(agg)
-
-## convert from long to wide format to create new columns for each value-trait combination
-agg_wide <- pivot_wider(agg, names_from = TraitID, values_from = c("mean", "stddev"))
-
-## convert to dataframe
-agg_wide <- as.data.frame(agg_wide)
-
-### join with table containing growth form by "AccSpeciesName"
-agg_wide_full <- left_join(agg_wide, gf, by = "AccSpeciesName")
-
-# write table, will be reused in script "3_join_GBIF_TRY.R"
-fwrite(agg_wide_full, file = "TRY_final.txt", col.names = TRUE)
+# In section below, need to convert to something that applies for categorical data
+# Maybe columns should be portion of records (for the species) that is each dispersal mode
+# Under the column of wind dispersal = 0.75, under the column for attachment = 0.25 (if there are 4 total records)
+# ## group by AccSpeciesName (species name) and Trait ID (plant functional trait), compute mean and SD
+# agg <- trydat %>%
+#   group_by(AccSpeciesName, TraitID) %>%
+#   summarize(mean = mean(StdValue, na.rm = TRUE),
+#             stddev = sd(StdValue, na.rm = TRUE))
+# 
+# ## convert to dataframe
+# agg <- as.data.frame(agg)
+# 
+# ## convert from long to wide format to create new columns for each value-trait combination
+# agg_wide <- pivot_wider(agg, names_from = TraitID, values_from = c("mean", "stddev"))
+# 
+# ## convert to dataframe
+# agg_wide <- as.data.frame(agg_wide)
+# 
+# ### join with table containing growth form by "AccSpeciesName"
+# agg_wide_full <- left_join(agg_wide, gf, by = "AccSpeciesName")
+# 
+# # write table, will be reused in script "3_join_GBIF_TRY.R"
+# fwrite(agg_wide_full, file = "TRY_final.txt", col.names = TRUE)
 
 
 
