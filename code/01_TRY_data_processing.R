@@ -8,54 +8,85 @@
 ### load libraries
 library(dplyr)
 library(tidyverse)
-require(data.table)
+library(RCurl)
+library(TNRS)
+library(data.table)
+
+# Get dispersal mode info
+mode_dat <- getURL("https://raw.githubusercontent.com/evancf/classifying-dispersal-mode/main/data/mode_dat.csv")
+mode_dat <- read.csv(text = mode_dat, row.names = 1) %>%
+  tibble()
+
+table(mode_dat$mode)
+
+table(list(mode_dat$mode, mode_dat$biotic))
+
+# Want to clean this up with TNRS
+mode_sp <- tibble(sp = unique(mode_dat$sp),
+                  gen = word(unique(mode_dat$sp), 1))
+
+# This takes a few minutes
+mode_tnrs <- TNRS(mode_sp$sp)
+
+# Put this on the mode_sp dataframe
+mode_sp <- mode_sp %>%
+  mutate(tnrs_sp = mode_tnrs$Accepted_species,
+         tnrs_fam = mode_tnrs$Accepted_family) %>%
+  mutate(tnrs_sp = ifelse(tnrs_sp == "",
+                          NA,
+                          tnrs_sp))
 
 
-### set paths to data files
-workdir <- getwd()
-path_try <- "./data/13238.txt"
+# Then join this back to mode_dat
+mode_dat <- mode_dat %>%
+  left_join(mode_sp)
 
 
-### read data
-setwd(workdir)
+# Want to get the mode averages for the records that are actually specific
+# modes (rather than just being biotic/not biotic or unspecified animals)
+specific_modes <- c("ant", "attach", "ballistic", "cache", "endo", "water", "wind")
+mode_specific_summary <- mode_dat %>% 
+  filter(mode %in% specific_modes) %>% 
+  filter(!is.na(tnrs_sp)) %>% 
+  group_by(tnrs_sp, mode) %>% 
+  summarise(n = n()) %>%
+  mutate(prop = n / sum(n)) %>% 
+  dplyr::select(-n) %>% 
+  ungroup() %>% 
+  pivot_wider(values_from = prop,
+              names_from = mode,
+              values_fill = 0)
 
-## plant functional trait data
-trydat <- fread(path_try, header = T, sep = "\t", dec = ".", quote = "", 
-                data.table = T, select = c("DataID", "AccSpeciesName", "StdValue", "UnitName", "TraitID", "TraitName", "ErrorRisk"))
-head(trydat)
-dim(trydat)
+# Similarly want to get a percent biotic estimate
+biotic_summary <- mode_dat %>% 
+  filter(!is.na(tnrs_sp)) %>% 
+  group_by(tnrs_sp, biotic) %>% 
+  summarise(n = n()) %>%
+  ungroup() %>%
+  pivot_wider(values_from = n,
+              names_from = biotic,
+              values_fill = 0) %>% 
+  rename("bio" = '1',
+         "abio" = '0') %>% 
+  mutate(biotic = bio/(bio + abio)) %>% 
+  dplyr::select(-bio,
+                -abio)
+  
+biotic_summary %>% filter(biotic < 1)
 
-### preprocessing
+# Then will full join and call it what the original repo did
 
-## remove those entries with high uncertainty (as explained in release notes)
-trydat <- trydat[!(trydat$ErrorRisk >= 4), ]
+agg_wide_full <- full_join(mode_specific_summary,
+                          biotic_summary)
+# Note there will be some NAs at the bottom of this dataset
 
-## remove TraitID = NA indicating missing observations
-trydat <- subset(trydat, !is.na(trydat$TraitID))
+# Will also match the use of "AccSpeciesName" to mean the accepted species name
+# according to TNRS
+agg_wide_full <- agg_wide_full %>% 
+  rename(AccSpeciesName = tnrs_sp)
 
-# In section below, need to convert to something that applies for categorical data
-# Maybe columns should be portion of records (for the species) that is each dispersal mode
-# Under the column of wind dispersal = 0.75, under the column for attachment = 0.25 (if there are 4 total records)
-# ## group by AccSpeciesName (species name) and Trait ID (plant functional trait), compute mean and SD
-# agg <- trydat %>%
-#   group_by(AccSpeciesName, TraitID) %>%
-#   summarize(mean = mean(StdValue, na.rm = TRUE),
-#             stddev = sd(StdValue, na.rm = TRUE))
-# 
-# ## convert to dataframe
-# agg <- as.data.frame(agg)
-# 
-# ## convert from long to wide format to create new columns for each value-trait combination
-# agg_wide <- pivot_wider(agg, names_from = TraitID, values_from = c("mean", "stddev"))
-# 
-# ## convert to dataframe
-# agg_wide <- as.data.frame(agg_wide)
-# 
-# ### join with table containing growth form by "AccSpeciesName"
-# agg_wide_full <- left_join(agg_wide, gf, by = "AccSpeciesName")
-# 
-# # write table, will be reused in script "3_join_GBIF_TRY.R"
-# fwrite(agg_wide_full, file = "TRY_final.txt", col.names = TRUE)
+# write table, will be reused in script "3_join_GBIF_TRY.R"
+fwrite(agg_wide_full, file = "./data/TRY_final.txt", col.names = TRUE)
 
 
 

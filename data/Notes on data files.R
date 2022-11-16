@@ -2,11 +2,10 @@
 
 # Input data
 
-# TRY data, which is a tab separated txt file currently called 13238.txt
-# Will want multimedia.txt in here too 
+# Will want multimedia.txt in here
 
 
 
 # Output data / data saved at certain steps
 
-# This is things like the 'species_links.txt' and 'Dat_full_ready_for_sampling.txt'
+# This is things like the 'TRY_final.txt' one, 'species_links.txt', and 'Dat_full_ready_for_sampling.txt'
