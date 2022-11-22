@@ -7,6 +7,7 @@
 
 
 ### load libraries
+### install.packages("dplyr")
 require(data.table)
 library(dplyr)
 require(raster)
@@ -14,7 +15,7 @@ require(raster)
 
 
 ### set paths to data files
-workdir <- ""
+workdir <- "/pool001/hardyxu/CNN_Data"
 
 ### read data
 setwd(workdir)
