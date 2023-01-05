@@ -8,9 +8,11 @@
 ### load libraries
 require(data.table)
 require(dplyr)
+require(unix)
 
 ### set path to files
-workdir = ""
+workdir <- "/pool001/hardyxu/CNN_Data"
+
 
 ### read data
 setwd(workdir)
@@ -20,7 +22,7 @@ specs <- as.data.frame(specs)
 head(specs)
 dim(specs)
 
-traits <- fread("TRY_final.txt", header = T, sep = ",", dec = ".", quote = "", data.table = T)
+traits <- fread("mode_dat.csv", header = T, sep = ",", dec = ".", quote = "\"", data.table = T)
 traits <- as.data.frame(traits)
 head(traits)
 # traitID's: 
@@ -36,16 +38,19 @@ head(traits)
 
 ## sort datatable to speed up the following processes
 specs <- specs[order(specs$species),]
-traits <- traits[order(traits$AccSpeciesName),]
+traits <- traits[order(traits$sp),]
 
 ## subset dataframe "links" using the species names from dataframe "traits"
-specs <- subset(specs, species %in% traits$AccSpeciesName)
+specs <- subset(specs, species %in% traits$sp)
 
 ## rename species column in "traits" dataframe to enable join
-colnames(traits)[1] <- "species"
+colnames(traits)[2] <- "species"
+
+## clear memory
+gc()
 
 ## join trait values with download links
-specs_full <- left_join(specs, traits, by = "species")
+specs_full <- inner_join(specs, traits, by = "species")
 head(specs_full)
 dim(specs_full)
 
@@ -54,12 +59,12 @@ dim(specs_full)
 # 3106 = H = plant height, 3110 = LA = leaf area, 3117 = SLA = specific leaf area = 1/LMA
 
 # delete some columns that are unnecessary now
-specs_full <- specs_full[, -c(1)]
+## specs_full <- specs_full[, -c(1)]
 head(specs_full)
 
 
 ##### exclude images without climate data
-specs_full <- specs_full[!is.na(specs_full$bio1), ]
+## specs_full <- specs_full[!is.na(specs_full$bio1), ]
 
 ##### assign unique identifier for each image
 uniqID <- sprintf("%07d", 1:nrow(specs_full))
@@ -67,6 +72,8 @@ specs_full <- cbind(specs_full, uniqID)
 
 # write to disk, continue with script "4_download_images.R"
 fwrite(specs_full, file = "Dat_full_ready_for_sampling.txt", col.names = TRUE)
+
+
 
 
 
