@@ -4,6 +4,7 @@
 ##### leaf nitrogen concentration, seed mass and stem specific density in their respective standard unit
 ##### further details: https://www.try-db.org/TryWeb/TRY_Data_Release_Notes.pdf and https://www.try-db.org/de/TabDetails.php
 
+### portion trait data (each column)
 
 ### load libraries
 library(dplyr)

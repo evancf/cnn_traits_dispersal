@@ -15,27 +15,44 @@ require(raster)
 
 
 ### set paths to data files
-workdir <- "/pool001/hardyxu/CNN_Data"
+workdir <- "/nobackup1/hardyxu/CNN_Data"
 
 ### read data
 setwd(workdir)
 
 ## dataset containing download links
 # "identifier" contains the relevant url for the image
-images <- fread("verbatim.txt", header = T, sep = "\t", dec = ".", quote = "", data.table = T, select = c("gbifID", "identifier"))
-head(images)
+## images
+## , select = c("gbifID", "scientificName", "identifier")
+specs <- fread("verbatim.txt", header = T, sep = "\t", dec = ".", quote = "", data.table = T, select = c("gbifID", "scientificName", "identifier", "kingdom"))
+head(specs)
 
 ## obtain occurrence data including coordinate and metadata
-specs <- fread("occurrence.txt", header = T, sep = "\t", dec = ".", quote = "", data.table = T, 
-                 select = c("gbifID", "species", "license", "issue"))
+## specs <- fread("occurrence.txt", header = T, sep = "\t", dec = ".", quote = "", data.table = T, select = c("gbifID", "species", "license", "issue"))
 ## hasCoordinate", "decimalLatitude", "decimalLongitude", "coordinateUncertaintyInMeters", "hasGeospatialIssues", 
-head(specs)
+## head(specs)
 
 ### add image URL's to occurrence data by column "gbifID"
-specs <- left_join(specs, images, by = "gbifID")
-head(specs)
+## specs <- left_join(specs, images, by = "gbifID")
+## head(specs)
+
+## remove observations other than "plantae"
+specs <- specs[specs$kingdom == "Plantae"]
 
 ### remove observations with certain issues
+
+## remove observations couldn't be matched with any GRSciColl collection.
+## specs <- filter(specs, !grepl("COLLECTION_MATCH_NONE", issue))
+
+## Remove: individual count value > 0, but occurrence status is absent.
+## specs <- filter(specs, !grepl("INDIVIDUAL_COUNT_CONFLICTS_WITH_OCCURRENCE_STATUS", issue))
+
+## The individual count value is not a positive integer
+## specs <- filter(specs, !grepl("INDIVIDUAL_COUNT_INVALID", issue))
+
+## An error occurred during interpretation, leaving the record interpretation incomplete.
+## specs <- filter(specs, !grepl("INTERPRETATION_ERROR", issue))
+
 
 ## remove observations with known geospatial issues
 ## specs <- as.data.frame(specs)
@@ -46,7 +63,7 @@ head(specs)
 
 ## remove observations with unclear taxonomic identification
 ## Matching to the taxonomic backbone can only be done on a higher rank and not the scientific name.
-specs <- filter(specs, !grepl("TAXON_MATCH_HIGHERRANK", issue))
+## specs <- filter(specs, !grepl("TAXON_MATCH_HIGHERRANK", issue))
 
 # remove observations with issue "coordinate uncertainty meters invalid"
 ## specs <- filter(specs, !grepl("COORDINATE_UNCERTAINTY_METERS_INVALID", issue))
@@ -64,7 +81,7 @@ specs <- filter(specs, !grepl("TAXON_MATCH_HIGHERRANK", issue))
 ## specs <- filter(specs, (coordinateUncertaintyInMeters <= 100000))
 
 # some columns are obsolete now and can be removed
-specs <- specs[, c(1:3, 5)]
+## specs <- specs[, c(1:3, 5)]
 
 ### get worldclim data
 ## clim <- getData("worldclim", var = "bio", res = 10)

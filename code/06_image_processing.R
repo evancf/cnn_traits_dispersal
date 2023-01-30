@@ -4,6 +4,7 @@
 ##### input are the images produced by script "5_download_images.R" and their metadata
 
 ### load libraries
+library(sp)
 library(raster)
 library(rgdal)
 library(doParallel)
@@ -16,8 +17,8 @@ library(data.table)
 
 
 ### set paths
-workdir <- ""
-path_meta <- ""
+workdir <- "/pool001/hardyxu"
+path_meta <- "/1000_Species_Pics"
 
 ### read data
 setwd(workdir)
@@ -28,17 +29,17 @@ all_pics <- list.files(path = paste0(workdir, path_meta), pattern = ".jpg")
 
 ### set parameters
 pixel_size = 512 # x-y pixel size used for creating tiles
-no_cores = 3 # how many cores for multicore processing?
+no_cores = 4 # how many cores for multicore processing?
 dummy_rast <- raster(matrix(data = NA, ncol = pixel_size, nrow = pixel_size)) # used for resampling (see below)
-outputfolder = "SSD_test/" # folder to which the resulting images will be saved
+outputfolder = "/SSD_test/" # folder to which the resulting images will be saved
 unlink(substr(outputfolder, 0, nchar(outputfolder)-1), recursive = TRUE)
-dir.create(paste(workdir, path_meta, outputfolder, sep =""))
+dir.create(paste(workdir, outputfolder, sep =""))
 
-metadata <- fread(paste0(workdir, path_meta, "metadata.txt"), header = TRUE, sep = ",", dec = ".", quote = "", data.table = T)
+metadata <- fread(paste0(workdir, "/", "metadata.txt"), header = TRUE, sep = ",", dec = ".", quote = "", data.table = T)
 head(metadata)
 
 # change working directory
-setwd(paste0(workdir, path_meta))
+## setwd(paste0(workdir, path_meta))
 
 # start parallel processing
 cl <- makeCluster(no_cores)
@@ -68,7 +69,7 @@ convert_output <- foreach(i = 1:length(all_pics)) %dopar% {
   }
   
   rast = NA # set rast to NA, because if file is corrupt previous raster will not be overwritten
-  rast = stack(all_pics[i]) # load image
+  rast = stack(paste0(path_meta, "/", all_pics[i]) # load image
 
   # remove alpha channel (if available) and ignore images with number of bands != 3 (RGB)
   if(dim(rast)[3] == 4){
@@ -120,7 +121,7 @@ metadata <- subset(metadata, pic_name %in% subfiles)
 metadata <- metadata[order(metadata$pic_name), ]
 
 # save metadata file to disk
-fwrite(metadata, file = paste0(outputfolder, "metadata.txt"), col.names = TRUE)
+fwrite(metadata, file = paste0(workdir,"/", "metadata.txt"), col.names = TRUE)
 # continue with script "7_train_CNN.R"
 
 

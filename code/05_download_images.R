@@ -5,10 +5,11 @@
 
 ### load libraries
 require(data.table)
+require(stringr)
 
 ### set paths and parameters
-workdir <- ""
-outputfolder <- ""
+workdir <- "/nobackup1/hardyxu/CNN_Data"
+outputfolder <- "/pool001/hardyxu/1000_Species_Pics"
 
 ### read data
 setwd(workdir)
@@ -16,31 +17,81 @@ setwd(workdir)
 dir.create(outputfolder)
 
 # replace with any other trait sample
-leaf_area <- fread("leaf_area_sample_rdy_for_download.txt", header = TRUE, sep = ",", dec = ".", quote = "", data.table = T)
-leaf_area <- as.data.frame(leaf_area)
+dispersal_mode <- fread("seed_dispersal_mode_rdy_for_download.txt", header = TRUE, sep = ",", dec = ".", quote = "", data.table = T)
+dispersal_mode <- as.data.frame(dispersal_mode)
 
 # initialise column "pic_name" to reference the name of the .jpg-file in the metadata
-leaf_area$pic_name <- matrix(NA, nrow(leaf_area), 1)
+dispersal_mode$pic_name <- matrix(NA, nrow(dispersal_mode), 1)
 
+### Suppress extraneous warning messages
+oldw <- getOption("warn")
+options(warn = -1)
+options(timeout=100)
 
-### download the data
-for (i in (1:nrow(leaf_area)))
+### Close the connection when done
+### download the data     nrow(dispersal_mode)
+for (i in (1:nrow(dispersal_mode)))
 {
+  ## IF function
   # assign unique picture name
-  leaf_area$pic_name[i] <- paste("LA_", sprintf("%06d", i), ".jpg", sep="")
-  download.file(as.character(leaf_area$identifier[i]), 
-                  destfile = paste(outputfolder, "LA_", sprintf("%06d", i), ".jpg", sep=""), 
-                  mode = "wb")
+  skip_to_next <- FALSE
+  download_url <- NA
+  thePage <- NA
+  dispersal_mode$pic_name[i] <- paste("SDM_", sprintf("%06d", i), ".jpg", sep="")
+  # check if image already exists
+  skip_to_next <<- file.exists(paste(outputfolder, "/SDM_", sprintf("%06d", i), ".jpg", sep=""))
+  if(skip_to_next) {
+    print(paste(i, 'Image already exists'))
+    next
+  }
+  # access inaturalist web page
+  page_url <- paste("https://www.inaturalist.org/photos/", as.character(dispersal_mode$identifier[i]), sep="")
+  # processing url
+  ## function(e){
+  ## download_url_improved <- “whatever”
+  ## print(“inat link did not work”)
+  ## }
+  tryCatch({
+    page_url <- url(page_url, "rb")
+    thePage <- readLines(page_url)
+    close(page_url)
+    }, error = function(x) {
+    print(paste(i, x))
+    skip_to_next <<- TRUE
+    })
+  if(skip_to_next) next
+  tempRow <- grep('img class=\"medium photo\"',thePage)
+  tryCatch(download_url <- sapply(strsplit(thePage[tempRow], "\""), "[", 4), error = function(y){
+    print(paste(i, y))
+    skip_to_next <<- TRUE
+  })
+  if(skip_to_next) next
+  print(paste("[", i, "]", download_url, sep=""))
+  tryCatch({
+    download.file(download_url, destfile = paste(outputfolder, "/SDM_", sprintf("%06d", i), ".jpg", sep=""), mode = "wb")
+    closeAllConnections()
+    }, 
+           error = function(e) print(paste(i, e)))
+  ## while (!file.exists(paste(outputfolder, "/SDM_", sprintf("%06d", i), ".jpg", sep=""))) {
+  ##   Sys.sleep(1)
+  ## }
 }
+
+### Restore settings
+options(warn = oldw)
 
 # remove observations with failed downloads (= missing image in the image folder)
 fls <- list.files(outputfolder, pattern = ".jpg")
-leaf_area <- leaf_area[as.character(leaf_area$pic_name) %in% fls,]
+dispersal_mode <- dispersal_mode[as.character(dispersal_mode$pic_name) %in% fls,]
 
 # write to disk
-fwrite(leaf_area, file = paste0(outputfolder, "metadata.txt"), col.names = TRUE)
+fwrite(dispersal_mode, file = paste0(outputfolder, "metadata.txt"), col.names = TRUE)
 # continue with script "6_image_processing.R"
 
 
-
+## Search Webpage
+## webpage <- xml2::read_html(download_url)
+## ExOffndrsRaw <- rvest::html_table(webpage)[[1]] %>% 
+## tibble::as_tibble(.name_repair = "unique") # repair the repeated columns
+## ExOffndrsRaw %>% dplyr::glimpse(45)
 

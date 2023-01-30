@@ -11,7 +11,7 @@ require(dplyr)
 require(unix)
 
 ### set path to files
-workdir <- "/pool001/hardyxu/CNN_Data"
+workdir <- "/nobackup1/hardyxu/CNN_Data"
 
 
 ### read data
@@ -22,7 +22,8 @@ specs <- as.data.frame(specs)
 head(specs)
 dim(specs)
 
-traits <- fread("mode_dat.csv", header = T, sep = ",", dec = ".", quote = "\"", data.table = T)
+### TRY_final.txt/mode_dat.csv
+traits <- fread("TRY_final.txt", header = T, sep = ",", dec = ".", quote = "\"", data.table = T)
 traits <- as.data.frame(traits)
 head(traits)
 # traitID's: 
@@ -37,22 +38,37 @@ head(traits)
 ### join image dataset with trait data 
 
 ## sort datatable to speed up the following processes
-specs <- specs[order(specs$species),]
-traits <- traits[order(traits$sp),]
+specs <- specs[order(specs$scientificName),]
+traits <- traits[order(traits$AccSpeciesName),]
+traits <- unique(traits)
 
 ## subset dataframe "links" using the species names from dataframe "traits"
-specs <- subset(specs, species %in% traits$sp)
+## specs <- subset(specs, scientificName %in% traits$sp)
 
 ## rename species column in "traits" dataframe to enable join
-colnames(traits)[2] <- "species"
+colnames(specs)[2] <- "species"
+colnames(traits)[1] <- "species"
 
-## clear memory
+
+## reduce size
+## set.seed(4)
+## species_to_keep <- sample(unique(specs$species), 100, replace = F)
+## specs <- filter(specs, species %in% species_to_keep)
+
+## check memory
 gc()
 
 ## join trait values with download links
-specs_full <- inner_join(specs, traits, by = "species")
+specs_full <- left_join(specs, traits, by = "species")
+## specs_full <- merge(specs, traits, by = "species")
+
+## Try merge
+## specs_full <- merge(specs, traits, by = "species")
 head(specs_full)
 dim(specs_full)
+
+## check memory
+gc()
 
 # as a reminder:
 # traits: 4 = SSD = stem specific density, 14 = N = leaf nitrogen content, 26 = SM = seed dry mass,
