@@ -9,7 +9,7 @@ require(stringr)
 
 ### set paths and parameters
 workdir <- "/nobackup1/hardyxu/CNN_Data"
-outputfolder <- "/pool001/hardyxu/1000_Species_Pics"
+outputfolder <- "/pool001/hardyxu/Species_Pics"
 
 ### read data
 setwd(workdir)
@@ -37,6 +37,7 @@ for (i in (1:nrow(dispersal_mode)))
   skip_to_next <- FALSE
   download_url <- NA
   thePage <- NA
+  closeAllConnections()
   dispersal_mode$pic_name[i] <- paste("SDM_", sprintf("%06d", i), ".jpg", sep="")
   # check if image already exists
   skip_to_next <<- file.exists(paste(outputfolder, "/SDM_", sprintf("%06d", i), ".jpg", sep=""))
@@ -45,7 +46,7 @@ for (i in (1:nrow(dispersal_mode)))
     next
   }
   # access inaturalist web page
-  page_url <- paste("https://www.inaturalist.org/photos/", as.character(dispersal_mode$identifier[i]), sep="")
+  page_url <- paste("https://www.inaturalist.org/observations/", as.character(dispersal_mode$identifier[i]), sep="")
   # processing url
   ## function(e){
   ## download_url_improved <- “whatever”
@@ -60,8 +61,11 @@ for (i in (1:nrow(dispersal_mode)))
     skip_to_next <<- TRUE
     })
   if(skip_to_next) next
-  tempRow <- grep('img class=\"medium photo\"',thePage)
-  tryCatch(download_url <- sapply(strsplit(thePage[tempRow], "\""), "[", 4), error = function(y){
+  tryCatch({
+    tempRow <- grep('large.jp',thePage)
+    tempRow <- tempRow[1]
+    download_url <- sapply(strsplit(thePage[tempRow], "\""), "[", 2)
+  }, error = function(y){
     print(paste(i, y))
     skip_to_next <<- TRUE
   })
@@ -69,12 +73,12 @@ for (i in (1:nrow(dispersal_mode)))
   print(paste("[", i, "]", download_url, sep=""))
   tryCatch({
     download.file(download_url, destfile = paste(outputfolder, "/SDM_", sprintf("%06d", i), ".jpg", sep=""), mode = "wb")
+    while (!file.exists(paste(outputfolder, "/SDM_", sprintf("%06d", i), ".jpg", sep=""))) {
+      Sys.sleep(1)
+    }
     closeAllConnections()
     }, 
            error = function(e) print(paste(i, e)))
-  ## while (!file.exists(paste(outputfolder, "/SDM_", sprintf("%06d", i), ".jpg", sep=""))) {
-  ##   Sys.sleep(1)
-  ## }
 }
 
 ### Restore settings
@@ -85,7 +89,7 @@ fls <- list.files(outputfolder, pattern = ".jpg")
 dispersal_mode <- dispersal_mode[as.character(dispersal_mode$pic_name) %in% fls,]
 
 # write to disk
-fwrite(dispersal_mode, file = paste0(outputfolder, "metadata.txt"), col.names = TRUE)
+fwrite(dispersal_mode, file = paste0("/pool001/hardyxu/","metadata.txt"), col.names = TRUE)
 # continue with script "6_image_processing.R"
 
 

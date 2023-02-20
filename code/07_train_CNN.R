@@ -17,7 +17,7 @@ set.seed(123)
 
 ### helper function
 # normalisation
-range01 <- function(x, min, max){(x - min)/(max - min)}
+range01_v2 <- function(x, min, max){(x - min)/(max - min)}
 
 # function to adjust a variable randomly within a certain specified range, making use of the truncated normal distribution
 truncatedsd <- function(mn, dev)
@@ -29,7 +29,7 @@ truncatedsd <- function(mn, dev)
 
 
 ### set up tensorflow
-tf$compat$v1$set_random_seed(as.integer(28))
+tf$compat$v1$set_random_seed(as.integer(1234))
 
 # set memory growth policy
 gpu1 <- tf$config$experimental$get_visible_devices('GPU')[[1]]
@@ -41,11 +41,11 @@ strategy$num_replicas_in_sync
 
 
 ### set paths (to corresponding trait dataset) and parameters
-workdir = ""
-path_img = ""
-path_img = ""
-path_ref = ""
-outdir = ""
+workdir = "/pool001/hardyxu"
+path_img = "/SSD_test"
+## path_img = ""
+path_ref = "/metadata_updated.txt"
+outdir = "/pool001/hardyxu/output"
 xres = 512
 yres = 512
 no_bands = 3
@@ -68,45 +68,46 @@ path_img = list.files(paste0(workdir, path_img), full.names = T, pattern = "jpg"
 dat <- cbind(path_img, ref)
 
 ### remove outliers
-dat$ref <- log10(dat$ref)
-outl <- which.outlier(dat$ref, thr = 3, method = "sd")
-dat <- dat[-outl,]
+# dat$ref <- log10(dat$ref)
+# outl <- which.outlier(dat$ref, thr = 3, method = "sd")
+# dat <- dat[-outl,]
 
 ### split test dataset from training/validation dataset
 testIdx <- sample(x = 1:nrow(dat), size = floor(nrow(dat)/10), replace = F)
 test_dat <- dat[testIdx, ]
 test_img <- dat$path_img[testIdx]
-test_ref <- dat$ref[testIdx]
+test_seed <- dat$biotic[testIdx]
 dat <- dat[-testIdx, ]
 
 ### split training and validation data
 valIdx <- sample(x = 1:nrow(dat), size = floor(nrow(dat)/5), replace = F)
 val_dat <- dat[valIdx, ]
 val_img <- dat$path_img[valIdx]
-val_ref <- dat$ref[valIdx]
+val_seed <- dat$biotic[valIdx]
 train_dat <- dat[-valIdx, ]
 # train_dat contains the remaining training dataset
 
 
 ### save min and max values of original targets (without outliers) for succeeding normalisation
 # they are needed to adjust the augmented targets to the same scale as validation and test data (in case of target augmentation)
-min_ref <- min(train_dat$mean) # min of training (!) data
-max_ref <- max(train_dat$mean) # max of training (!) data
+# min_ref <- min(train_dat$biotic) # min of training (!) data
+# max_ref <- max(train_dat$biotic) # max of training (!) data
 
 ### transform validation and test targets with the values from training data
-val_ref <- range01_v2(val_ref, log10(min_ref), log10(max_ref))
-test_ref <- range01_v2(test_ref, log10(min_ref), log10(max_ref))
+# val_ref <- range01_v2(val_seed, log10(min_ref), log10(max_ref))
+# test_ref <- range01_v2(test_seed, log10(min_ref), log10(max_ref))
 
 ### prepare training datasets
 train_img = train_dat$path_img
 
 
 ### prepare training reference values
-train_ref = range01_v2(train_dat$ref, log10(min_ref), log10(max_ref))
+train_seed = train_dat$biotic
+# range01_v2(train_dat$ref, log10(min_ref), log10(max_ref))
 
 ### prepare tibble
-train_data = tibble(img = train_img, ref = train_ref)
-val_data = tibble(img = val_img, ref = val_ref)
+train_data = tibble(img = train_img, ref = train_seed)
+val_data = tibble(img = val_img, ref = val_seed)
 
 
 # save test data to disk
@@ -372,7 +373,7 @@ val_example = dataset_iter %>% reticulate::iter_next()
 val_example
 
 
-
+                                
 
 #################################################
 ##### define model for Baseline or TA setup #####
