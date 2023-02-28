@@ -14,11 +14,15 @@ library(tibble)
 library(rsample)
 library(data.table)
 library(reticulate)
+library(tfaddons)
 set.seed(123)
 
 # create virtual environment
 virtualenv_create("r-reticulate")
 use_virtualenv("r-reticulate")
+
+# model building
+tf$keras$backend$clear_session()  # For easy reset of notebook state.
 
 ### helper function
 # normalisation
@@ -38,7 +42,10 @@ tf$compat$v1$set_random_seed(as.integer(28))
 # --------------- Set up TF_CONFIG --------------- #
 # Python
 # load the index and node info from the command line
-
+# py_run_file("/home/hardyxu/Seed_Dispersal/CNN_Code/cnn_traits_dispersal/code/CNN_Config.py")
+# print('Trying to resolve cluster')
+## slurm_resolver <- tf$distribute$cluster_resolver$SlurmClusterResolver()
+# print('Resolved cluster')
 
 # set memory growth policy
 #gpu1 <- tf$config$experimental$get_visible_devices('GPU')[[1]]
@@ -49,7 +56,9 @@ tf$compat$v1$set_random_seed(as.integer(28))
 communication_options <- tf$distribute$experimental$CommunicationOptions(
   implementation=tf$distribute$experimental$CommunicationImplementation$AUTO)
 # Assign strategy
+# strategy <- tf$distribute$MultiWorkerMirroredStrategy(communication_options=communication_options)
 strategy <- tf$distribute$MultiWorkerMirroredStrategy(communication_options=communication_options)
+# cluster_resolver=slurm_resolver
 strategy$num_replicas_in_sync
 
 
@@ -114,6 +123,7 @@ val_data = tibble(img = val_img, ref = val_ref)
 # save test data to disk
 save(test_img, file = paste0(outdir, "test_img.RData"), overwrite = T)
 save(test_ref, file = paste0(outdir, "test_ref.RData"), overwrite = T)
+
 
 
 
@@ -186,6 +196,10 @@ dataset_size <- length(train_data$img)
 training_dataset <- create_dataset(train_data, train = TRUE, batch = batch_size, epochs = epochs, dataset_size = dataset_size)
 validation_dataset <- create_dataset(val_data, train = FALSE, batch = batch_size, epochs = epochs)
 
+# save dataset for future training
+save(training_dataset, file = paste0(outdir, "training_dataset.RData"), overwrite = T)
+save(validation_dataset, file = paste0(outdir, "validation_dataset"), overwrite = T)
+
 ### check dataset loading
 dataset_iter = reticulate::as_iterator(training_dataset)
 train_example = dataset_iter %>% reticulate::iter_next()
@@ -196,15 +210,13 @@ dataset_iter = reticulate::as_iterator(validation_dataset)
 val_example = dataset_iter %>% reticulate::iter_next()
 val_example
 
-
-
 ### choose one of three pre-defined base model architectures: Inception-Resnet-v2, Xception, MobileNet-v2
 ### Inception-Resnet-v2 was used for Baseline and TA in the study
 with(strategy$scope(), {
   
   # base CNN model definition, initial weights should be downloaded automatically from www.image-net.org upon compiling
   base_model <- application_inception_resnet_v2(weights = 'imagenet',
-                                                include_top = FALSE, input_shape = c(xres, yres, no_bands))
+                                                include_top = FALSE, input_shape = c(xres, yres, no_bands) )
   # base_model <- application_xception(weights = 'imagenet',
   #                               include_top = FALSE, input_shape = c(xres, yres, no_bands))
   # base_model <- application_mobilenet_v2(weights = 'imagenet', alpha = 0.5,
@@ -248,38 +260,13 @@ cp_callback <- callback_model_checkpoint(filepath = filepath,
                                          mode = "auto",
                                          save_freq = "epoch")
 
-history <- model %>% fit(x = training_dataset,
+model %>% fit(x = training_dataset,
                          epochs = epochs,
                          steps_per_epoch = floor(length(train_data$img)/batch_size), 
-                         callbacks = list(cp_callback, callback_terminate_on_naan()),
+                         callbacks = list(cp_callback, callback_terminate_on_naan(), callback_time_stopping(seconds = 39600)),
                          validation_data = validation_dataset)
 
+# save model
+save_model_tf(model, paste0(outdir, "saved_model/my_model"))
 
-## Evaluation
-checkpoint_dir <- paste0(outdir, "checkpoints/")
-load(paste0(outdir, "test_img.RData"))
-load(paste0(outdir, "test_ref.RData"))
 
-# convert to tibble
-test_data = tibble(img = test_img, ref = test_ref)
-
-# prepare dataset that can be input to the CNN
-test_dataset <- create_dataset(test_data, train = FALSE, batch = 1, shuffle = FALSE, useDSM = FALSE)
-
-# load model (use meaningful "modelname.hdf5" file)
-model = load_model_hdf5(paste0(checkpoint_dir, "modelname.hdf5"), compile = TRUE) 
-
-# evaluate test dataset
-eval <- evaluate(object = model, x = test_dataset)
-eval
-
-# make predictions
-test_pred = predict(model, test_dataset)
-
-# save predictions
-test_pred_df <- as.data.frame(test_pred)
-test_pred_df <- test_pred_df$V1
-
-# allocate image names and reference data to predictions of test dataset for succeeding analysis
-data_full <- cbind(as.character(test_img), test_ref, test_pred_df)
-write.csv(data_full, paste0(outdir, "Test_results.csv"))

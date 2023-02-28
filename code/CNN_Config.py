@@ -10,7 +10,7 @@ import numpy as np
 # /home/hardyxu/Compute_Request/nodes.txt
 # load the index and node info from the nodes.txt file
 # open the file and read the lines
-with open('c:/Users/Hardy/Documents/MIT/Thesis/Code/Github/cnn_traits_dispersal/code/nodes.txt') as f:
+with open('/home/hardyxu/Compute_Request/nodes.txt') as f:
     lines = f.readlines()
 # First line looks like this: node[029,279]
 # Get the node numbers and convert to a list of ints
@@ -23,7 +23,7 @@ tf_config = {
     }
 # node names for each node, append a port # to the names
 for i in range(len(nodes)):
-    tf_config['cluster']['worker'].append('node[' + nodes[i] + ']:2001')
+    tf_config['cluster']['worker'].append('node[' + str(nodes[i]) + ']:2001')
     tf_config['task']['index'] = i
 os.environ['TF_CONFIG'] = json.dumps(tf_config)
 print(os.environ['TF_CONFIG'])
