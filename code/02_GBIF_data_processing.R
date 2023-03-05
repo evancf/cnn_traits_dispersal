@@ -15,7 +15,7 @@ require(raster)
 
 
 ### set paths to data files
-workdir <- "/nobackup1/hardyxu/CNN_Data"
+workdir <- "~/data/GBIF_data/"
 
 ### read data
 setwd(workdir)

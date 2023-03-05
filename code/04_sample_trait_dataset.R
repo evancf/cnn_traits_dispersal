@@ -8,7 +8,7 @@ set.seed(12345)
 
 
 ### set path to files
-workdir <- "/nobackup1/hardyxu/CNN_Data"
+workdir <- "~/data/GBIF_data/"
 
 
 ### set working directory

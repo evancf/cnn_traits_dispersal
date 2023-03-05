@@ -8,8 +8,8 @@ require(data.table)
 require(stringr)
 
 ### set paths and parameters
-workdir <- "/nobackup1/hardyxu/CNN_Data"
-outputfolder <- "/pool001/hardyxu/Species_Pics"
+workdir <- "~/data/GBIF_data/"
+outputfolder <- "~/Image/Species_Pics/"
 
 ### read data
 setwd(workdir)
