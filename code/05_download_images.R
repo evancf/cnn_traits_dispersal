@@ -89,7 +89,7 @@ fls <- list.files(outputfolder, pattern = ".jpg")
 dispersal_mode <- dispersal_mode[as.character(dispersal_mode$pic_name) %in% fls,]
 
 # write to disk
-fwrite(dispersal_mode, file = paste0("~/image","metadata.txt"), col.names = TRUE)
+fwrite(dispersal_mode, file = paste0("~/image/","metadata.txt"), col.names = TRUE)
 # continue with script "6_image_processing.R"
 
 
