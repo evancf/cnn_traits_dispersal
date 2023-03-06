@@ -17,8 +17,9 @@ library(data.table)
 
 
 ### set paths
-workdir <- "/pool001/hardyxu"
+workdir <- "~/image"
 path_meta <- "/Species_Pics"
+outputfolder = "/SSD_test/" # folder to which the resulting images will be saved
 
 ### read data
 setwd(workdir)
@@ -29,9 +30,8 @@ all_pics <- list.files(path = paste0(workdir, path_meta), pattern = ".jpg")
 
 ### set parameters
 pixel_size = 512 # x-y pixel size used for creating tiles
-no_cores = 16 # how many cores for multicore processing?
+no_cores = 20 # how many cores for multicore processing?
 dummy_rast <- raster(matrix(data = NA, ncol = pixel_size, nrow = pixel_size)) # used for resampling (see below)
-outputfolder = "/SSD_test/" # folder to which the resulting images will be saved
 unlink(substr(outputfolder, 0, nchar(outputfolder)-1), recursive = TRUE)
 dir.create(paste(workdir, outputfolder, sep =""))
 
