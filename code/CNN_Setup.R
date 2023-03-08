@@ -214,13 +214,18 @@ dataset_iter = reticulate::as_iterator(validation_dataset)
 val_example = dataset_iter %>% reticulate::iter_next()
 val_example
 
+
+
 ### choose one of three pre-defined base model architectures: Inception-Resnet-v2, Xception, MobileNet-v2
 ### Inception-Resnet-v2 was used for Baseline and TA in the study
 with(strategy$scope(), {
   
+  # import base mnodel from downloaded inception_resnet_v2
+  base_model <- load_model_tf('inception_resnet_v2_weights_tf_dim_ordering_tf_kernels_notop.h5')
+  
   # base CNN model definition, initial weights should be downloaded automatically from www.image-net.org upon compiling
-  base_model <- application_inception_resnet_v2(weights = 'imagenet',
-                                                include_top = FALSE, input_shape = c(xres, yres, no_bands) )
+  #base_model <- application_inception_resnet_v2(weights = 'imagenet',
+                                                # include_top = FALSE, input_shape = c(xres, yres, no_bands) )
   # base_model <- application_xception(weights = 'imagenet',
   #                               include_top = FALSE, input_shape = c(xres, yres, no_bands))
   # base_model <- application_mobilenet_v2(weights = 'imagenet', alpha = 0.5,
