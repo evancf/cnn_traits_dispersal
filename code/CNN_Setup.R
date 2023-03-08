@@ -248,7 +248,8 @@ with(strategy$scope(), {
   # compile model
   model %>% compile(
     loss = "mse",
-    optimizer = optimizer_rmsprop(),
+    optimizer = tf$keras$optimizers$RMSprop(learning_rate=0.01),
+    # optimizer = optimizer_rmsprop(),
     metrics = c("mean_absolute_error")
   )
 })
