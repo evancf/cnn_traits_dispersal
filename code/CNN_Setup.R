@@ -18,8 +18,8 @@ library(reticulate)
 set.seed(123)
 
 # create virtual environment
-virtualenv_create("r-reticulate")
-use_virtualenv("r-reticulate")
+# virtualenv_create("r-reticulate")
+# use_virtualenv("r-reticulate")
 
 # model building
 tf$keras$backend$clear_session()  # For easy reset of notebook state.
