@@ -21,6 +21,8 @@ set.seed(123)
 # virtualenv_create("r-reticulate")
 # use_virtualenv("r-reticulate")
 
+tf_config()
+
 # model building
 tf$keras$backend$clear_session()  # For easy reset of notebook state.
 
