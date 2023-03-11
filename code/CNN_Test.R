@@ -1,9 +1,3 @@
-##### in this script, the CNN models are trained 
-##### input is the metadata from script "6_image_processing.R" and the corresponding image data
-##### all setups are considered in this modular script
-##### the code for each setup is clearly marked, the TA and Bioclim setups can be added if desired
-
-
 ### libraries
 library(NCmisc)
 library(keras)
@@ -91,47 +85,7 @@ path_img = list.files(paste0(workdir, path_img), full.names = T, pattern = "jpg"
 # combine image data with target value data
 dat <- cbind(path_img, ref)
 
-### remove outliers
-# dat$ref <- log10(dat$ref)
-# outl <- which.outlier(dat$ref, thr = 3, method = "sd")
-# dat <- dat[-outl,]
-
-### split test dataset from training/validation dataset
-testIdx <- sample(x = 1:nrow(dat), size = floor(nrow(dat)/10), replace = F)
-test_dat <- dat[testIdx, ]
-test_img <- dat$path_img[testIdx]
-test_ref <- dat$biotic[testIdx]
-dat <- dat[-testIdx, ]
-
-### split training and validation data
-valIdx <- sample(x = 1:nrow(dat), size = floor(nrow(dat)/5), replace = F)
-val_dat <- dat[valIdx, ]
-val_img <- dat$path_img[valIdx]
-val_ref <- dat$biotic[valIdx]
-train_dat <- dat[-valIdx, ]
-# train_dat contains the remaining training dataset
-
-### prepare training datasets
-train_img = train_dat$path_img
-
-
-### prepare training reference values
-train_ref = train_dat$biotic
-# range01_v2(train_dat$ref, log10(min_ref), log10(max_ref))
-
-### prepare tibble
-train_data = tibble(img = train_img, ref = train_ref)
-val_data = tibble(img = val_img, ref = val_ref)
-
-
-# save test data to disk
-save(test_img, file = paste0(outdir, "test_img.RData"), overwrite = T)
-save(test_ref, file = paste0(outdir, "test_ref.RData"), overwrite = T)
-
-
-
-
-### tfdatasets input pipeline 
+## tfdatasets input pipeline 
 create_dataset <- function(data,
                            train, # logical. TRUE for augmentation of training data
                            batch, # numeric. multiplied by number of available gpus since batches will be split between gpus
@@ -191,95 +145,37 @@ create_dataset <- function(data,
 
 
 
-### set parameters 
-batch_size <- 20 
-epochs <- 50
-dataset_size <- length(train_data$img)
+#### Test ####
+## Evaluation
+checkpoint_dir <- paste0(outdir, "checkpoints/")
+load(paste0(outdir, "test_img.RData"))
+load(paste0(outdir, "test_ref.RData"))
 
-### prepare dataset that can be input to CNN
-training_dataset <- create_dataset(train_data, train = TRUE, batch = batch_size, epochs = epochs, dataset_size = dataset_size)
-validation_dataset <- create_dataset(val_data, train = FALSE, batch = batch_size, epochs = epochs)
+# convert to tibble
+test_data = tibble(img = test_img, ref = test_ref)
 
-# save dataset for future training
-save(training_dataset, file = paste0(outdir, "training_dataset.RData"), overwrite = T)
-save(validation_dataset, file = paste0(outdir, "validation_dataset.RData"), overwrite = T)
+# prepare dataset that can be input to the CNN
+test_dataset <- create_dataset(test_data, train = FALSE, batch = 1, shuffle = FALSE, useDSM = FALSE)
 
-### check dataset loading
-dataset_iter = reticulate::as_iterator(training_dataset)
-train_example = dataset_iter %>% reticulate::iter_next()
-train_example[[1]]
-train_example[[2]]
+# load model (use meaningful "modelname.hdf5" file)
+model = load_model_hdf5(paste0(checkpoint_dir, "weights.50-0.17838.hdf5"), compile = TRUE) 
 
-dataset_iter = reticulate::as_iterator(validation_dataset)
-val_example = dataset_iter %>% reticulate::iter_next()
-val_example
+# evaluate test dataset
+eval <- evaluate(object = model, x = test_dataset)
+eval
 
+# make predictions
+test_pred = predict(model, test_dataset)
 
-### choose one of three pre-defined base model architectures: Inception-Resnet-v2, Xception, MobileNet-v2
-### Inception-Resnet-v2 was used for Baseline and TA in the study
-with(strategy$scope(), {
-  
-  # import base mnodel from downloaded inception_resnet_v2
-  weights_path <- 'inception_resnet_v2_weights_tf_dim_ordering_tf_kernels_notop.h5'
-  base_model <- application_inception_resnet_v2(weights = weights_path, include_top = FALSE, input_shape = c(xres, yres, no_bands) )
-  # base CNN model definition, initial weights should be downloaded automatically from www.image-net.org upon compiling
-  #base_model <- application_inception_resnet_v2(weights = 'imagenet',
-                                                # include_top = FALSE, input_shape = c(xres, yres, no_bands) )
-  # base_model <- application_xception(weights = 'imagenet',
-  #                               include_top = FALSE, input_shape = c(xres, yres, no_bands))
-  # base_model <- application_mobilenet_v2(weights = 'imagenet', alpha = 0.5,
-  #                          include_top = FALSE, input_shape = c(xres, yres, no_bands))
-  
-  # add custom layers as regressor
-  predictions <- base_model$output %>%
-    layer_global_average_pooling_2d() %>%
-    layer_dense(units = 512, activation = 'relu') %>%
-    layer_dense(units = 1, activation = 'linear') 
-  
-  # set up the model
-  model <- keras_model(inputs = base_model$input, outputs = predictions)
-  
-  # set up learning rate schedule
-  #lr_schedule = keras.optimizers.schedules.ExponentialDecay(
-  #initial_learning_rate=0.001,
-  # decay_steps= 10000,
-  #decay_rate= 0.0001)
-  
-  # compile model
-  model %>% compile(
-    loss = "mse",
-    optimizer = tf$keras$optimizers$RMSprop(learning_rate=0.01),
-    # optimizer = optimizer_rmsprop(),
-    metrics = c("mean_absolute_error")
-  )
-})
+# save predictions
+test_pred_df <- as.data.frame(test_pred)
+test_pred_df <- test_pred_df$V1
 
+# include species name in the output
+test_img_2 <- as.data.frame(test_img)
+colnames(test_img_2) <- "path_img"
+joined_img <- left_join(test_img_2, dat, by = "path_img")
 
-
-checkpoint_dir <- paste0(outdir, "checkpoints")
-unlink(checkpoint_dir, recursive = TRUE)
-dir.create(checkpoint_dir, recursive = TRUE)
-filepath = file.path(checkpoint_dir, "weights.{epoch:02d}-{val_loss:.5f}.hdf5")
-
-cp_callback <- callback_model_checkpoint(filepath = filepath,
-                                         monitor = "val_loss",
-                                         save_weights_only = FALSE,
-                                         save_best_only = FALSE,
-                                         verbose = 1,
-                                         mode = "auto",
-                                         save_freq = "epoch")
-
-model %>% fit(x = training_dataset,
-              epochs = epochs,
-              steps_per_epoch = floor(length(train_data$img)/batch_size), 
-              callbacks = list(cp_callback, callback_terminate_on_naan()),
-              # callback_time_stopping(seconds = 39600)
-              validation_data = validation_dataset)
-
-# save model
-save_model_tf(model, paste0(outdir, "saved_model/my_model"))
-
-
-
-
-
+# allocate image names and reference data to predictions of test dataset for succeeding analysis
+data_full <- cbind(as.character(test_img), joined_img['species'], test_ref, test_pred_df)
+write.csv(data_full, paste0(outdir, "Test_results.csv"))
