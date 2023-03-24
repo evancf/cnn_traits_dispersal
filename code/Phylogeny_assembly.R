@@ -1,6 +1,9 @@
 library("U.PhyloMaker")
 library("tidyverse")
 library("data.table")
+
+setwd("~/project/cnn_traits_dispersal/")
+
 sp_dat <- fread("./data/TRY_final.txt", header = T, sep = "auto", dec = ".", quote = "", data.table = T)
 megatree <- read.tree("./data/plant_megatree.tre")
 families <- read.csv("./data/plant_genus_list.csv")
