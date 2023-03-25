@@ -23,5 +23,5 @@ save(sp_tree, file = "./data/sp_tree.RData")
 write.tree(sp_tree$phylo, file = "~/data/Phylogeny/seed_plant_phylo.tre")
 
 # Write the phylogeny out for RevBayes analysis
-write.tree(sp_tree$sp_dat,
+write.csv(sp_tree$sp_dat,
            file = "~/data/Phylogeny/seed_plant_phylo.txt")
