@@ -13,7 +13,7 @@ gen.list <- read.csv("./data/plant_genus_list.csv")
 
 dim(sp.list)
 time.phylo.start <- Sys.time()
-sp_tree <- phylo.maker(sp.list, megatree, list, nodes.type = 1, scenario = 3) # Started around 5:00 PM Wednesday
+sp_tree <- phylo.maker(sp.list, megatree, gen.list, nodes.type = 1, scenario = 3) # Started around 5:00 PM Wednesday
 time.phylo.end <- Sys.time()
 time.phylo.end - time.phylo.start # Took about 16 hours
 
