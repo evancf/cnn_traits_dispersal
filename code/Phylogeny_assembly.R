@@ -20,8 +20,8 @@ time.phylo.end - time.phylo.start # Took about 16 hours
 save(sp_tree, file = "./data/sp_tree.RData")
 
 # Save trees
-write.tree(result$phylo, file = "~/data/Phylogeny/seed_plant_phylo.tre")
+write.tree(sp_tree$phylo, file = "~/data/Phylogeny/seed_plant_phylo.tre")
 
 # Write the phylogeny out for RevBayes analysis
-write.tree(result$sp_dat,
+write.tree(sp_tree$sp_dat,
            file = "~/data/Phylogeny/seed_plant_phylo.txt")
