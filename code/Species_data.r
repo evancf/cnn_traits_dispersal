@@ -54,7 +54,9 @@ sp_dat <- sp_dat %>% filter(!is.na(family))
 nrow(sp_dat)
 
 # Lastly, format this for U.PhyloMaker
-sp_dat <- tibble(species = sp_dat$species) %>% as.data.frame()
+sp_dat <- tibble(species = sp_dat$species,
+                  genus	= sp_dat$genus, 
+                  family = sp_dat$family) %>% as.data.frame()
 
 #  genus	= sp_dat$genus, family = sp_dat$family, species.relative = NA, genus.relative = NA
 
