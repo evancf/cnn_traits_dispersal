@@ -56,7 +56,9 @@ nrow(sp_dat)
 # Lastly, format this for U.PhyloMaker
 sp_dat <- tibble(species = sp_dat$species,
                   genus	= sp_dat$genus, 
-                  family = sp_dat$family) %>% as.data.frame()
+                  family = sp_dat$family,
+                  species.relative = NA, 
+                  genus.relative = NA) %>% as.data.frame()
 
 #  genus	= sp_dat$genus, family = sp_dat$family, species.relative = NA, genus.relative = NA
 
