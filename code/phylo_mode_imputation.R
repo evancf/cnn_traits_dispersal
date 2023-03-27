@@ -36,7 +36,7 @@ sp_dat_train <- rbind(train_sp_dat, test_sp_dat)
 sp_dat_train <- sp_dat_train[order(as.numeric(row.names(sp_dat_train))), ]
 
 # simulate missing data
-sim_data <- simtraits(v = sp_dat_train, tree = sp_tree$phylo, nmissing = as.numeric(nrow(sp_dat_train)*0.2))
+# sim_data <- simtraits(v = sp_dat_train, tree = sp_tree$phylo, nmissing = as.numeric(nrow(sp_dat_train)*0.2))
 
 # record time
 start_time <- Sys.time()
@@ -55,7 +55,7 @@ save(pred_sp_dat, file = "./data/pred_sp_dat.RData")
 
 
 # load saved data
-load(file = "./data/pred_sp_dat.RData")
+# load(file = "./data/pred_sp_dat.RData")
 # save trained data into data frame
 pred_dat <- as.data.frame(pred_sp_dat$anc_recon)
 # move index to column
