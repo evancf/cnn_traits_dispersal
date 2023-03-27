@@ -70,4 +70,4 @@ write.csv(target_test_sp_dat, file = "./data/target_test_sp_dat.csv")
 
 # calculate RMSE
 RMSE <- sqrt(mean((target_test_sp_dat$biotic - target_test_sp_dat$biotic_pred)^2))
-
+RMSE
