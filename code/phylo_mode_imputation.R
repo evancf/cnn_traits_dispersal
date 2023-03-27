@@ -65,9 +65,10 @@ colnames(pred_dat)[colnames(pred_dat) == "biotic"] <- "biotic_pred"
 # left join with original data
 target_test_sp_dat <- left_join(target_test_sp_dat, pred_dat, by = c("species" = "species"))
 
-# save the result in csv
-write.csv(target_test_sp_dat, file = "./data/target_test_sp_dat.csv")
-
 # calculate RMSE
 RMSE <- sqrt(mean((target_test_sp_dat$biotic - target_test_sp_dat$biotic_pred)^2))
 RMSE
+
+# save the result in csv
+write.csv(target_test_sp_dat, file = "./data/target_test_sp_dat.csv")
+
