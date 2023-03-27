@@ -36,7 +36,7 @@ sp_dat_train <- rbind(train_sp_dat, test_sp_dat)
 sp_dat_train <- sp_dat_train[order(as.numeric(row.names(sp_dat_train))), ]
 
 # simulate missing data
-# sim_data <- simtraits(v = sp_dat_train, tree = sp_tree$phylo, nmissing = as.numeric(nrow(sp_dat_train)*0.2))
+sim_data <- simtraits(v = sp_dat_train, tree = sp_tree$phylo, nmissing = as.numeric(nrow(sp_dat_train)*0.2))
 
 # record time
 start_time <- Sys.time()
@@ -52,4 +52,22 @@ sapply(pred_sp_dat, class)
 
 # save the result
 save(pred_sp_dat, file = "./data/pred_sp_dat.RData")
-save(sp_dat_test, file = "./data/sp_dat_test.RData")
+
+
+# load saved data
+load(file = "./data/pred_sp_dat.RData")
+# save trained data into data frame
+pred_dat <- as.data.frame(pred_sp_dat$anc_recon)
+# move index to column
+pred_dat$species <- row.names(pred_dat)
+# change column name biotic to biotic_pred
+colnames(pred_dat)[colnames(pred_dat) == "biotic"] <- "biotic_pred"
+# left join with original data
+target_test_sp_dat <- left_join(target_test_sp_dat, pred_dat, by = c("species" = "species"))
+
+# save the result in csv
+write.csv(target_test_sp_dat, file = "./data/target_test_sp_dat.csv")
+
+# calculate RMSE
+RMSE <- sqrt(mean((target_test_sp_dat$biotic - target_test_sp_dat$biotic_pred)^2))
+
