@@ -64,7 +64,8 @@ pred_dat$species <- row.names(pred_dat)
 colnames(pred_dat)[colnames(pred_dat) == "biotic"] <- "biotic_pred"
 # left join with original data
 target_test_sp_dat <- left_join(target_test_sp_dat, pred_dat, by = c("species" = "species"))
-
+# check the result
+head(target_test_sp_dat)
 # calculate RMSE
 RMSE <- sqrt(mean((target_test_sp_dat$biotic - target_test_sp_dat$biotic_pred)^2))
 RMSE
