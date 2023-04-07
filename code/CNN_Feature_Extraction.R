@@ -70,7 +70,7 @@ tf$config$list_physical_devices()
 workdir = "~/image"
 path_img = "/SSD_test"
 ## path_img = ""
-path_ref = "/feature_extraction.txt"
+path_ref = "/annotation_batch_1.csv"
 outdir =  "~/image/feature_output/"
 
 xres = 512
@@ -83,17 +83,17 @@ dir.create(paste0(outdir), recursive = FALSE)
 
 ### read data
 
-## reference
-ref = read.table(paste0(workdir, path_ref), row.names=NULL, sep = ",", header = TRUE)
+## reference from csv
+dat <- read.csv(paste0(workdir, path_ref), header = T, sep = ",")
 
-## list all img  data
-path_img = list.files(paste0(workdir, path_img), full.names = T, pattern = "jpg")
+# ## list all img  data
+# path_img = list.files(paste0(workdir, path_img), full.names = T, pattern = "jpg")
 
-# combine image data with target value data
-dat <- cbind(path_img, ref)
+# # combine image data with target value data
+# dat <- cbind(path_img, ref)
 
-# choose image data with annotation information
-dat <- dat[complete.cases(dat),]
+# # choose image data with annotation information
+# dat <- dat[complete.cases(dat),]
 
 ### remove outliers
 # dat$ref <- log10(dat$ref)
@@ -103,24 +103,24 @@ dat <- dat[complete.cases(dat),]
 ### split test dataset from training/validation dataset
 testIdx <- sample(x = 1:nrow(dat), size = floor(nrow(dat)/10), replace = F)
 test_dat <- dat[testIdx, ]
-test_img <- dat$path_img[testIdx]
-test_ref <- dat$biotic[testIdx]
+test_img <- dat$pic_name[testIdx]
+test_ref <- dat$contains_fruits_seeds[testIdx]
 dat <- dat[-testIdx, ]
 
 ### split training and validation data
 valIdx <- sample(x = 1:nrow(dat), size = floor(nrow(dat)/5), replace = F)
 val_dat <- dat[valIdx, ]
-val_img <- dat$path_img[valIdx]
-val_ref <- dat$biotic[valIdx]
+val_img <- dat$pic_name[valIdx]
+val_ref <- dat$contains_fruits_seeds[valIdx]
 train_dat <- dat[-valIdx, ]
 # train_dat contains the remaining training dataset
 
 ### prepare training datasets
-train_img = train_dat$path_img
+train_img = train_dat$pic_name
 
 
 ### prepare training reference values
-train_ref = train_dat$seeds
+train_ref = train_dat$contains_fruits_seeds
 # range01_v2(train_dat$ref, log10(min_ref), log10(max_ref))
 
 ### prepare tibble
