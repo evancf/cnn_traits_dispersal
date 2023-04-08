@@ -241,7 +241,7 @@ with(strategy$scope(), {
   predictions <- base_model$output %>%
     layer_global_average_pooling_2d() %>%
     layer_dense(units = 512, activation = 'relu') %>%
-    layer_dense(units = 1, activation = 'linear') 
+    layer_dense(units = 1, activation = 'sigmoid') 
   
   # set up the model
   model <- keras_model(inputs = base_model$input, outputs = predictions)
