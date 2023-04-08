@@ -1,3 +1,10 @@
+##### in this script, the CNN models are trained
+##### input is the metadata manually created to classify the photos we want 
+##### train the model to classify all the images with fruits and seeds recorded
+##### the output metadata will serve as the input to the CNN models in predicting seed dispersal mode 
+
+
+
 ### libraries
 library(NCmisc)
 library(keras)
@@ -66,7 +73,6 @@ path_img = "/SSD_test"
 path_ref = "/feature_extraction_batch_1.csv"
 outdir =  "~/image/feature_output/"
 
-
 xres = 512
 yres = 512
 no_bands = 3
@@ -77,8 +83,8 @@ dir.create(paste0(outdir), recursive = FALSE)
 
 ### read data
 
-## reference
-ref = read.table(paste0(workdir, path_ref), row.names=NULL, sep = ",", header = TRUE)
+## reference from csv
+ref <- read.csv(paste0(workdir, path_ref), header = T, sep = ",")
 
 ## list all img  data
 path_img = list.files(paste0(workdir, path_img), full.names = T, pattern = "jpg")
@@ -86,7 +92,18 @@ path_img = list.files(paste0(workdir, path_img), full.names = T, pattern = "jpg"
 # combine image data with target value data
 dat <- cbind(path_img, ref)
 
-## tfdatasets input pipeline 
+# # choose image data with annotation information
+# dat <- dat[complete.cases(dat),]
+
+### remove outliers
+# dat$ref <- log10(dat$ref)
+# outl <- which.outlier(dat$ref, thr = 3, method = "sd")
+# dat <- dat[-outl,]
+
+# NA in contains_fruits_seeds
+dat <- dat[is.na(dat$contains_fruits_seeds),]
+
+### tfdatasets input pipeline 
 create_dataset <- function(data,
                            train, # logical. TRUE for augmentation of training data
                            batch, # numeric. multiplied by number of available gpus since batches will be split between gpus
@@ -149,34 +166,32 @@ create_dataset <- function(data,
 #### Test ####
 ## Evaluation
 checkpoint_dir <- paste0(outdir, "checkpoints/")
-load(paste0(outdir, "test_img.RData"))
-load(paste0(outdir, "test_ref.RData"))
+
+pred_img <- dat$path_img
+pred_ref <- dat$contains_fruits_seeds
 
 # convert to tibble
-test_data = tibble(img = test_img, ref = test_ref)
+pred_data <- tibble(path_img = pred_img, contains_fruits_seeds = pred_ref)
 
 # prepare dataset that can be input to the CNN
-test_dataset <- create_dataset(test_data, train = FALSE, batch = 1, shuffle = FALSE, useDSM = FALSE)
+pred_dataset <- create_dataset(pred_data, train = FALSE, batch = 1, shuffle = FALSE, useDSM = FALSE)
 
 # load model (use meaningful "modelname.hdf5" file)
 model = load_model_hdf5(paste0(checkpoint_dir, "weights.50-0.17838.hdf5"), compile = TRUE) 
 
-# evaluate test dataset
-eval <- evaluate(object = model, x = test_dataset)
-eval
 
 # make predictions
-test_pred = predict(model, test_dataset)
+target_pred = predict(model, pred_dataset)
 
 # save predictions
-test_pred_df <- as.data.frame(test_pred)
-test_pred_df <- test_pred_df$V1
+target_pred_df <- as.data.frame(target_pred)
+target_pred_df <- target_pred_df$V1
 
 # include species name in the output
-test_img_2 <- as.data.frame(test_img)
-colnames(test_img_2) <- "path_img"
-joined_img <- left_join(test_img_2, dat, by = "path_img")
+path_img_2 <- as.data.frame(path_img)
+colnames(path_img_2) <- "path_img"
+joined_img <- left_join(path_img_2, dat, by = "path_img")
 
 # allocate image names and reference data to predictions of test dataset for succeeding analysis
-data_full <- cbind(as.character(test_img), joined_img['species'], test_ref, test_pred_df)
+data_full <- cbind(as.character(pred_img), joined_img['species'], pred_ref, pred_pred_df)
 write.csv(data_full, paste0(outdir, "Test_results.csv"))
