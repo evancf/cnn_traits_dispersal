@@ -180,3 +180,7 @@ joined_img <- left_join(test_img_2, dat, by = "path_img")
 # allocate image names and reference data to predictions of test dataset for succeeding analysis
 data_full <- cbind(as.character(test_img), joined_img['species'], test_ref, test_pred_df)
 write.csv(data_full, paste0(outdir, "Test_results.csv"))
+
+# calculate r squared
+r2 <- cor(test_ref, test_pred_df)^2
+r2
