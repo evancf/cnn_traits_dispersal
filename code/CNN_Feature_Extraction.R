@@ -295,7 +295,7 @@ cp_callback <- callback_model_checkpoint(filepath = filepath,
 
 model %>% fit(x = training_dataset,
               epochs = epochs,
-              steps_per_epoch = floor(length(train_data$img)/batch_size), 
+              # steps_per_epoch = floor(length(train_data$img)/batch_size), 
               callbacks = list(cp_callback, callback_terminate_on_naan(), callback_tensorboard(paste0(outdir, logdir, "fit_features"))),
               # callback_time_stopping(seconds = 39600)
               validation_data = validation_dataset)
