@@ -261,7 +261,7 @@ with(strategy$scope(), {
 
   # compile model
   model %>% compile(
-    loss = "mse",
+    loss = "categorical_crossentropy",
     optimizer = tf$keras$optimizers$RMSprop(learning_rate=0.001),
     # optimizer = optimizer_rmsprop(),
     metrics = c("mean_absolute_error")
