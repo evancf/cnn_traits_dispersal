@@ -72,6 +72,7 @@ path_img = "/SSD_test"
 ## path_img = ""
 path_ref = "/feature_extraction_batch_1.csv"
 outdir =  "~/image/feature_output/"
+logdir = "logs/"
 
 xres = 512
 yres = 512
@@ -80,6 +81,7 @@ no_bands = 3
 ### set working directory and output directory
 setwd(workdir)
 dir.create(paste0(outdir), recursive = FALSE)
+dir.create(paste0(outdir, logdir), recursive = FALSE)
 
 ### read data
 
@@ -254,6 +256,9 @@ with(strategy$scope(), {
   # decay_steps= 10000,
   #decay_rate= 0.0001)
   
+  # tensorboard setup
+  tensorboard(paste0(outdir, logdir, "fit_features"))
+
   # compile model
   model %>% compile(
     loss = "mse",
@@ -281,7 +286,7 @@ cp_callback <- callback_model_checkpoint(filepath = filepath,
 model %>% fit(x = training_dataset,
               epochs = epochs,
               steps_per_epoch = floor(length(train_data$img)/batch_size), 
-              callbacks = list(cp_callback, callback_terminate_on_naan()),
+              callbacks = list(cp_callback, callback_terminate_on_naan(), tensorboard(paste0(outdir, logdir, "fit_features"))),
               # callback_time_stopping(seconds = 39600)
               validation_data = validation_dataset)
 
