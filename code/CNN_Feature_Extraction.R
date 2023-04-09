@@ -240,6 +240,13 @@ with(strategy$scope(), {
   #                               include_top = FALSE, input_shape = c(xres, yres, no_bands))
   # base_model <- application_mobilenet_v2(weights = 'imagenet', alpha = 0.5,
   #                          include_top = FALSE, input_shape = c(xres, yres, no_bands))
+
+  # freeze base model
+  base_model$trainable <- FALSE
+
+  # summarize base model
+  summary(base_model)
+
   
   # add custom layers as regressor
   predictions <- base_model$output %>%
@@ -267,6 +274,9 @@ with(strategy$scope(), {
     metrics = c("accuracy")
   )
 })
+
+# summarize model
+summary(model)
 
 
 
