@@ -130,7 +130,9 @@ train_ref = train_dat$contains_fruits_seeds
 train_data = tibble(img = train_img, ref = train_ref)
 val_data = tibble(img = val_img, ref = val_ref)
 
-
+# save training data to disk
+save(train_ref, file = paste0(outdir, "train_ref.RData"), overwrite = T)
+save(train_img, file = paste0(outdir, "train_img.RData"), overwrite = T)
 # save test data to disk
 save(test_img, file = paste0(outdir, "test_img.RData"), overwrite = T)
 save(test_ref, file = paste0(outdir, "test_ref.RData"), overwrite = T)
