@@ -199,7 +199,7 @@ create_dataset <- function(data,
 
 
 ### set parameters 
-batch_size <- 20 
+batch_size <- 30 
 epochs <- 50
 dataset_size <- length(train_data$img)
 
@@ -241,7 +241,7 @@ with(strategy$scope(), {
   predictions <- base_model$output %>%
     layer_global_average_pooling_2d() %>%
     layer_dense(units = 512, activation = 'relu') %>%
-    layer_dense(units = 1, activation = 'sigmoid') 
+    layer_dense(units = 1, activation = 'linear') 
   
   # set up the model
   model <- keras_model(inputs = base_model$input, outputs = predictions)
@@ -255,7 +255,7 @@ with(strategy$scope(), {
   # compile model
   model %>% compile(
     loss = "mse",
-    optimizer = tf$keras$optimizers$RMSprop(learning_rate=0.01),
+    optimizer = tf$keras$optimizers$RMSprop(learning_rate=0.001),
     # optimizer = optimizer_rmsprop(),
     metrics = c("mean_absolute_error")
   )
