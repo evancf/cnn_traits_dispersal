@@ -171,6 +171,16 @@ test_pred = predict(model, test_dataset)
 # save predictions
 test_pred_df <- as.data.frame(test_pred)
 test_pred_df <- test_pred_df$V1
+# round predictions
+round2 = function(x, digits) {
+  posneg = sign(x)
+  z = abs(x)*10^digits
+  z = z + 0.5 + sqrt(.Machine$double.eps)
+  z = trunc(z)
+  z = z/10^digits
+  z*posneg
+}
+test_pred_df <- round2(test_pred_df, 0)
 
 # include species name in the output
 test_img_2 <- as.data.frame(test_img)
