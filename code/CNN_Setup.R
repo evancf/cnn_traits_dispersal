@@ -71,6 +71,8 @@ path_img = "/SSD_test"
 ## path_img = ""
 path_ref = "/metadata_updated.txt"
 outdir =  "~/image/output/"
+logdir = "logs/"
+
 
 xres = 512
 yres = 512
