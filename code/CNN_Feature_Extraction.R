@@ -204,7 +204,7 @@ create_dataset <- function(data,
 
 ### set parameters 
 batch_size <- 32
-epochs <- 10
+epochs <- 50
 dataset_size <- length(train_data$img)
 
 ### prepare dataset that can be input to CNN
@@ -242,7 +242,7 @@ with(strategy$scope(), {
   #                          include_top = FALSE, input_shape = c(xres, yres, no_bands))
 
   # freeze base model
-  base_model$trainable <- FALSE
+  # base_model$trainable <- FALSE
 
   # summarize base model
   summary(base_model)
