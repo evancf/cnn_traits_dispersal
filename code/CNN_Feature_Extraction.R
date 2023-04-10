@@ -250,8 +250,10 @@ with(strategy$scope(), {
   
   # add custom layers as regressor
   predictions <- base_model$output %>%
-    layer_global_average_pooling_2d() %>%
+    layer_average_pooling_2d(14, 14) %>%
+    layer_flatten() %>%
     layer_dense(units = 512, activation = 'relu') %>%
+    layer_dropout(rate = 0.5) %>%
     layer_dense(units = 1, activation = 'sigmoid') 
   
   # set up the model
