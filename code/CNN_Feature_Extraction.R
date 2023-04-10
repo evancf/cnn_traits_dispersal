@@ -204,7 +204,7 @@ create_dataset <- function(data,
 
 ### set parameters 
 batch_size <- 32
-epochs <- 50
+epochs <- 10
 dataset_size <- length(train_data$img)
 
 ### prepare dataset that can be input to CNN
