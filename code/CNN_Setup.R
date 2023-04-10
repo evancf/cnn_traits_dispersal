@@ -230,12 +230,20 @@ with(strategy$scope(), {
   # base_model <- application_mobilenet_v2(weights = 'imagenet', alpha = 0.5,
   #                          include_top = FALSE, input_shape = c(xres, yres, no_bands))
   
+  # freeze base model
+  base_model$trainable <- FALSE
+
+  # summarize base model
+  summary(base_model)
+
+  
   # add custom layers as regressor
   predictions <- base_model$output %>%
-    layer_global_average_pooling_2d() %>%
+    layer_average_pooling_2d(pool_size = c(14, 14)) %>% 
+    layer_flatten() %>%
     layer_dense(units = 512, activation = 'relu') %>%
-    layer_dense(units = 1, activation = 'linear') 
-  
+    layer_dropout(rate = 0.5) %>%
+    layer_dense(units = 1, activation = 'sigmoid') 
   # set up the model
   model <- keras_model(inputs = base_model$input, outputs = predictions)
   
@@ -245,12 +253,15 @@ with(strategy$scope(), {
   # decay_steps= 10000,
   #decay_rate= 0.0001)
   
+  # tensorboard setup
+  tensorboard(paste0(outdir, logdir, "fit_features"))
+
   # compile model
   model %>% compile(
-    loss = "mse",
+    loss = "binary_crossentropy",
     optimizer = tf$keras$optimizers$RMSprop(learning_rate=0.01),
     # optimizer = optimizer_rmsprop(),
-    metrics = c("mean_absolute_error")
+    metrics = c("accuracy")
   )
 })
 
@@ -272,7 +283,7 @@ cp_callback <- callback_model_checkpoint(filepath = filepath,
 model %>% fit(x = training_dataset,
               epochs = epochs,
               steps_per_epoch = floor(length(train_data$img)/batch_size), 
-              callbacks = list(cp_callback, callback_terminate_on_naan()),
+              callbacks = list(cp_callback, callback_terminate_on_naan(), callback_tensorboard(paste0(outdir, logdir, "fit_features"))),
               # callback_time_stopping(seconds = 39600)
               validation_data = validation_dataset)
 
