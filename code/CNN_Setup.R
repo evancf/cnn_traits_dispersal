@@ -233,7 +233,7 @@ with(strategy$scope(), {
   #                          include_top = FALSE, input_shape = c(xres, yres, no_bands))
   
   # freeze base model
-  base_model$trainable <- FALSE
+  # base_model$trainable <- FALSE
 
   # summarize base model
   summary(base_model)
