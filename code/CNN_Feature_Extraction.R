@@ -230,9 +230,14 @@ val_example
 ### Inception-Resnet-v2 was used for Baseline and TA in the study
 with(strategy$scope(), {
   
-  # import base mnodel from downloaded inception_resnet_v2
-  weights_path <- 'inception_resnet_v2_weights_tf_dim_ordering_tf_kernels_notop.h5'
-  base_model <- application_inception_resnet_v2(weights = weights_path, include_top = FALSE, input_shape = c(xres, yres, no_bands) )
+  # import base model from downloaded inception_resnet_v2
+  # weights_path <- 'inception_resnet_v2_weights_tf_dim_ordering_tf_kernels_notop.h5'
+  # base_model <- application_inception_resnet_v2(weights = weights_path, include_top = FALSE, input_shape = c(xres, yres, no_bands) )
+  # import base model from downloaded ResNet V2 152
+  base_model <- application_resnet_v2_152(weights = 'imagenet', include_top = FALSE, input_shape = c(xres, yres, no_bands) )
+  # weights_path <- 'resnet_v2_152_weights_tf_dim_ordering_tf_kernels_notop.h5'
+  # base_model <- application_resnet_v2_152(weights = weights_path, include_top = FALSE, input_shape = c(xres, yres, no_bands) )
+
   # base CNN model definition, initial weights should be downloaded automatically from www.image-net.org upon compiling
   #base_model <- application_inception_resnet_v2(weights = 'imagenet',
   # include_top = FALSE, input_shape = c(xres, yres, no_bands) )
