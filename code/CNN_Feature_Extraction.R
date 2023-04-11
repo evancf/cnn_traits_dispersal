@@ -205,7 +205,7 @@ create_dataset <- function(data,
 
 
 ### set parameters 
-batch_size <- 32
+batch_size <- 64
 epochs <- 50
 dataset_size <- length(train_data$img)
 
@@ -249,7 +249,7 @@ with(strategy$scope(), {
   #                          include_top = FALSE, input_shape = c(xres, yres, no_bands))
 
   # freeze base model
-  # base_model$trainable <- FALSE
+  base_model$trainable <- FALSE
 
   # summarize base model
   summary(base_model)
@@ -278,7 +278,7 @@ with(strategy$scope(), {
   # compile model
   model %>% compile(
     loss = "binary_crossentropy",
-    optimizer = tf$keras$optimizers$RMSprop(learning_rate=0.001),
+    optimizer = tf$keras$optimizers$RMSprop(learning_rate=0.0001),
     # optimizer = optimizer_rmsprop(),
     metrics = c("accuracy")
   )
