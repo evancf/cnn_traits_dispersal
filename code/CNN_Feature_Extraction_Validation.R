@@ -159,7 +159,7 @@ test_data = tibble(img = test_img, ref = test_ref)
 test_dataset <- create_dataset(test_data, train = FALSE, batch = 1, shuffle = FALSE, useDSM = FALSE)
 
 # load model (use meaningful "modelname.hdf5" file)
-model = load_model_hdf5(paste0(checkpoint_dir, "weights.50-0.53210.hdf5"), compile = TRUE) 
+model = load_model_hdf5(paste0(checkpoint_dir, "weights.50-0.85632.hdf5"), compile = TRUE) 
 
 # evaluate test dataset
 eval <- evaluate(object = model, x = test_dataset)
