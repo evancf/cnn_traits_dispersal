@@ -75,6 +75,8 @@ outdir =  "~/image/feature_output/"
 logdir = "logs/"
 
 xres = 512
+# convert to integer
+xres = as.integer(xres)
 yres = 512
 no_bands = 3
 
@@ -235,8 +237,8 @@ with(strategy$scope(), {
   # base_model <- application_inception_resnet_v2(weights = weights_path, include_top = FALSE, input_shape = c(xres, yres, no_bands) )
   # import base model from downloaded ResNet V2 152
   # base_model <- application_resnet152_v2(weights = 'imagenet', include_top = FALSE, input_shape = c(xres, yres, no_bands) )
-  weights_path <- 'resnet152_weights_tf.h5'
-  base_model <- tf$keras$applications$resnet_v2$ResNet152V2(weights = weights_path, include_top = FALSE, input_shape = c(xres, yres, no_bands) )
+  weights_path <- 'resnet152v2_weights_tf_dim_ordering_tf_kernels_notop.h5'
+  base_model <- tf$keras$applications$resnet_v2$ResNet152V2(weights = weights_path, include_top = FALSE, input_shape = c(as.integer(xres), as.integer(yres), as.integer(no_bands))) 
 
   # base CNN model definition, initial weights should be downloaded automatically from www.image-net.org upon compiling
   #base_model <- application_inception_resnet_v2(weights = 'imagenet',
