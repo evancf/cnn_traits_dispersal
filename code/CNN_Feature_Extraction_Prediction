@@ -177,7 +177,7 @@ pred_data <- tibble(path_img = pred_img, contains_fruits_seeds = pred_ref)
 pred_dataset <- create_dataset(pred_data, train = FALSE, batch = 1, shuffle = FALSE, useDSM = FALSE)
 
 # load model (use meaningful "modelname.hdf5" file)
-model = load_model_hdf5(paste0(checkpoint_dir, "weights.50-0.61836.hdf5"), compile = TRUE) 
+model = load_model_hdf5(paste0(checkpoint_dir, "weights.50-0.41992.hdf5"), compile = TRUE) 
 
 
 # make predictions
