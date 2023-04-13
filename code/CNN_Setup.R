@@ -99,19 +99,18 @@ dat <- cbind(path_img, ref)
 # dat <- dat[-outl,]
 
 ### split test dataset from training/validation dataset
-testIdx <- sample(x = 1:nrow(dat), size = floor(nrow(dat)/10), replace = F)
-test_dat <- dat[testIdx, ]
-test_img <- dat$path_img[testIdx]
-test_ref <- dat$biotic[testIdx]
-dat <- dat[-testIdx, ]
+species_test <- sample(unique(dat$species), size = floor(length(unique(dat$species))/10), replace = F)
+test_dat <- dat[dat$species %in% species_test, ]
+test_img <- dat$path_img[dat$species %in% species_test]
+test_ref <- dat$biotic[dat$species %in% species_test]
+dat <- dat[!(dat$species %in% species_test), ]
 
-### split training and validation data
-valIdx <- sample(x = 1:nrow(dat), size = floor(nrow(dat)/5), replace = F)
-val_dat <- dat[valIdx, ]
-val_img <- dat$path_img[valIdx]
-val_ref <- dat$biotic[valIdx]
-train_dat <- dat[-valIdx, ]
-# train_dat contains the remaining training dataset
+# split training and validation data
+species_val <- sample(unique(dat$species), size = floor(length(unique(dat$species))/5), replace = F)
+val_dat <- dat[dat$species %in% species_val, ]
+val_img <- dat$path_img[dat$species %in% species_val]
+val_ref <- dat$biotic[dat$species %in% species_val]
+train_dat <- dat[!(dat$species %in% species_val), ]
 
 ### prepare training datasets
 train_img = train_dat$path_img
