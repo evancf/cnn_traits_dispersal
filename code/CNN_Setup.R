@@ -194,7 +194,7 @@ create_dataset <- function(data,
 
 
 ### set parameters 
-batch_size <- 20 
+batch_size <- 32
 epochs <- 50
 dataset_size <- length(train_data$img)
 
@@ -222,8 +222,12 @@ val_example
 with(strategy$scope(), {
   
   # import base mnodel from downloaded inception_resnet_v2
-  weights_path <- 'inception_resnet_v2_weights_tf_dim_ordering_tf_kernels_notop.h5'
-  base_model <- application_inception_resnet_v2(weights = weights_path, include_top = FALSE, input_shape = c(xres, yres, no_bands) )
+  #weights_path <- 'inception_resnet_v2_weights_tf_dim_ordering_tf_kernels_notop.h5'
+  #base_model <- application_inception_resnet_v2(weights = weights_path, include_top = FALSE, input_shape = c(xres, yres, no_bands) )
+
+  weights_path <- 'resnet152v2_weights_tf_dim_ordering_tf_kernels_notop.h5'
+  base_model <- tf$keras$applications$resnet_v2$ResNet152V2(weights = weights_path, include_top = FALSE, input_shape = c(as.integer(xres), as.integer(yres), as.integer(no_bands))) 
+
   # base CNN model definition, initial weights should be downloaded automatically from www.image-net.org upon compiling
   #base_model <- application_inception_resnet_v2(weights = 'imagenet',
                                                 # include_top = FALSE, input_shape = c(xres, yres, no_bands) )
@@ -261,7 +265,7 @@ with(strategy$scope(), {
   # compile model
   model %>% compile(
     loss = "binary_crossentropy",
-    optimizer = tf$keras$optimizers$RMSprop(learning_rate=0.01),
+    optimizer = tf$keras$optimizers$RMSprop(learning_rate=0.001),
     # optimizer = optimizer_rmsprop(),
     metrics = c("accuracy")
   )
