@@ -158,7 +158,7 @@ test_data = tibble(img = test_img, ref = test_ref)
 test_dataset <- create_dataset(test_data, train = FALSE, batch = 1, shuffle = FALSE, useDSM = FALSE)
 
 # load model (use meaningful "modelname.hdf5" file)
-model = load_model_hdf5(paste0(checkpoint_dir, "weights.50-0.17838.hdf5"), compile = TRUE) 
+model = load_model_hdf5(paste0(checkpoint_dir, "weights.50-2.01704.hdf5"), compile = TRUE) 
 
 # evaluate test dataset
 eval <- evaluate(object = model, x = test_dataset)
@@ -171,11 +171,29 @@ test_pred = predict(model, test_dataset)
 test_pred_df <- as.data.frame(test_pred)
 test_pred_df <- test_pred_df$V1
 
+# round predictions
+round2 = function(x, digits) {
+  posneg = sign(x)
+  z = abs(x)*10^digits
+  z = z + 0.5 + sqrt(.Machine$double.eps)
+  z = trunc(z)
+  z = z/10^digits
+  z*posneg
+}
+test_pred_df_round <- round2(test_pred_df, 0)
+
 # include species name in the output
 test_img_2 <- as.data.frame(test_img)
 colnames(test_img_2) <- "path_img"
 joined_img <- left_join(test_img_2, dat, by = "path_img")
 
 # allocate image names and reference data to predictions of test dataset for succeeding analysis
-data_full <- cbind(as.character(test_img), joined_img['species'], test_ref, test_pred_df)
+data_full <- cbind(as.character(test_img), joined_img['species'], test_ref, test_pred_df, test_pred_df_round)
 write.csv(data_full, paste0(outdir, "Test_results.csv"))
+
+# calaulcate r squared
+r2 <- cor(test_ref, test_pred_df)^2
+r2
+
+r2_round <- cor(test_ref, test_pred_df_round)^2
+r2_round
