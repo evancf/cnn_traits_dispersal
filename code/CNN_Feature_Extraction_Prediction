@@ -163,8 +163,8 @@ create_dataset <- function(data,
 
 
 
-#### Test ####
-## Evaluation
+#### Predict ####
+
 checkpoint_dir <- paste0(outdir, "checkpoints/")
 
 pred_img <- dat$path_img
@@ -204,4 +204,4 @@ joined_img <- left_join(path_img_2, dat, by = "path_img")
 
 # allocate image names and reference data to predictions of test dataset for succeeding analysis
 data_full <- cbind(as.character(pred_img), joined_img['species'], pred_ref, pred_pred_df, pred_pred_df_round)
-write.csv(data_full, paste0(outdir, "Test_results.csv"))
+write.csv(data_full, paste0(outdir, "Pred_results.csv"))
