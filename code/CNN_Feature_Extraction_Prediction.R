@@ -205,5 +205,5 @@ colnames(pred_img_2) <- "path_img"
 joined_img <- left_join(pred_img_2, dat, by = "path_img")
 
 # allocate image names and reference data to predictions of test dataset for succeeding analysis
-data_full <- cbind(as.character(pred_img), joined_img['species'], pred_ref, pred_pred_df, pred_pred_df_round)
+data_full <- cbind(as.character(pred_img), joined_img['species'], pred_ref, target_pred_df, target_pred_df_round)
 write.csv(data_full, paste0(outdir, "Pred_results.csv"))
