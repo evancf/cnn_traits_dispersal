@@ -79,7 +79,7 @@ dir.create(paste0(outdir), recursive = FALSE)
 ### read data
 
 ## reference
-ref = read.table(paste0(workdir, path_ref), row.names=NULL, sep = ",", header = TRUE)
+ref <- read.csv(paste0(workdir, path_ref), header = T, sep = ",")
 
 ## list all img  data
 path_img = list.files(paste0(workdir, path_img), full.names = T, pattern = "jpg")
