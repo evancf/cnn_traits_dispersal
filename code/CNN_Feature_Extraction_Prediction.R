@@ -173,7 +173,7 @@ pred_img <- dat$path_img
 pred_ref <- dat$contains_fruits_seeds
 
 # convert to tibble
-pred_data <- tibble(path_img = pred_img, contains_fruits_seeds = pred_ref)
+pred_data <- tibble(img = pred_img, ref = pred_ref)
 
 # prepare dataset that can be input to the CNN
 pred_dataset <- create_dataset(pred_data, train = FALSE, batch = 1, shuffle = FALSE, useDSM = FALSE)
