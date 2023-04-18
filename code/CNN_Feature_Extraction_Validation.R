@@ -8,6 +8,7 @@ library(tibble)
 library(rsample)
 library(data.table)
 library(reticulate)
+library(pROC)
 # library(tfaddons)
 set.seed(123)
 
@@ -159,7 +160,7 @@ test_data = tibble(img = test_img, ref = test_ref)
 test_dataset <- create_dataset(test_data, train = FALSE, batch = 1, shuffle = FALSE, useDSM = FALSE)
 
 # load model (use meaningful "modelname.hdf5" file)
-model = load_model_hdf5(paste0(checkpoint_dir, "weights.50-0.41992.hdf5"), compile = TRUE) 
+model = load_model_hdf5(paste0(checkpoint_dir, "weights.50-1.46998.hdf5"), compile = TRUE) 
 
 # evaluate test dataset
 eval <- evaluate(object = model, x = test_dataset)
@@ -192,8 +193,7 @@ data_full <- cbind(as.character(test_img), joined_img['species'], test_ref, test
 write.csv(data_full, paste0(outdir, "Test_results.csv"))
 
 # calculate r squared
-r2 <- cor(test_ref, test_pred_df)^2
-r2
-
-r2_round <- cor(test_ref, test_pred_df_round)^2
-r2_round
+auc <- auc(test_ref, test_pred_df)
+auc
+auc_round <- auc(test_ref, test_pred_df_round)
+auc_round
