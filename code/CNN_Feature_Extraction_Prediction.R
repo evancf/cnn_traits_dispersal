@@ -102,6 +102,8 @@ dat <- cbind(path_img, ref)
 
 # NA in contains_fruits_seeds
 dat <- dat[is.na(dat$contains_fruits_seeds),]
+# set contains_fruits_seeds to -1
+dat$contains_fruits_seeds <- -1
 
 ### tfdatasets input pipeline 
 create_dataset <- function(data,
