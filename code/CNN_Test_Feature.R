@@ -195,7 +195,6 @@ joined_img <- left_join(test_img_2, dat, by = "path_img")
 data_full <- cbind(as.character(test_img), joined_img['species'], test_ref, test_pred_df, test_pred_df_round)
 write.csv(data_full, paste0(outdir, "Test_results.csv"))
 
-
 # calculate average of predictions within species
 data_full_avg <- data_full %>% group_by(species) %>% summarise(avg_pred = mean(test_pred_df_round))
 
