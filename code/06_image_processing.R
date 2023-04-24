@@ -28,6 +28,7 @@ setwd(workdir)
 all_pics <- list.files(path = paste0(workdir, path_meta), pattern = ".jpg")
 
 
+
 ### set parameters
 pixel_size = 512 # x-y pixel size used for creating tiles
 no_cores = 20 # how many cores for multicore processing?

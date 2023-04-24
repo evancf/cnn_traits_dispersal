@@ -10,7 +10,8 @@ manual_annotation <- read.csv("feature_extraction_batch_1.csv", header = T, sep 
 predict <- read.csv("Feature_Pred_results.csv", header = T, sep = ",")
 
 # merge two dataframes by pic_name
-merge_feature <- merge(manual_annotation, predict[c('pic_name', 'target_pred_df')], by = "pic_name")
+merge_feature <- left_join(manual_annotation, predict[c('pic_name', 'target_pred_df')], by = "pic_name")
+head(merge_feature, 20)
 
 # change NA in col contains_fruits_seeds in manual_annotation with col target_pred_df
 merge_feature$contains_fruits_seeds[is.na(merge_feature$contains_fruits_seeds)] <- merge_feature$target_pred_df[is.na(merge_feature$contains_fruits_seeds)]
