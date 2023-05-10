@@ -8,6 +8,7 @@ library(ks)
 library(ape)
 library(ggtree)
 library(pROC)
+library(ggtreeExtra)
 # set the working directory
 setwd("~/MIT/Thesis/Code/Github/cnn_traits_dispersal")
 # set random seed
@@ -15,8 +16,8 @@ set.seed(123)
 
 #### Calculate R squrared of CNN output based on species average ####
 # read data
-feature_cnn <- read.csv("data/Feature_CNN_Test_results.csv", header = T, sep = ",")
-direct_cnn <- read.csv("data/Direct_CNN_test_results.csv", header = T, sep = ",")
+feature_cnn <- read.csv("data/Feature_CNN_Test_results_31.csv", header = T, sep = ",")
+direct_cnn <- read.csv("data/Direct_CNN_test_results_44.csv", header = T, sep = ",")
 # calculate average of predictions within species
 feature_cnn_avg <- feature_cnn %>% group_by(species) %>% summarise(mean_pred = mean(test_pred_df), target = mean(test_ref))
 direct_cnn_avg <- direct_cnn %>% group_by(species) %>% summarise(mean_pred = mean(test_pred_df), target = mean(test_ref))
@@ -88,7 +89,7 @@ data <- data.frame(x = c("0-0.2", "0.2-0.4", "0.4-0.6", "0.6-0.8", "0.8-1"), y =
 # plot
 ggplot(data, aes(x, y)) + geom_point(size=6, color="cyan4") + geom_line(lwd=1, color="cyan4", aes(group = name), linetype='dashed') + 
     labs(x = "\nPossibility ", y = "\nR squared") + 
-    theme_classic() + theme(text = element_text(size = 10)) + theme(axis.text = element_text(size = 10)) 
+    theme_classic() + theme(text = element_text(size = 20)) + theme(axis.text = element_text(size = 15, colour = "black")) 
 
 # save the plot
 ggsave("plot/feature_extraction_direct_cnn.png", width = 10, height = 10)
@@ -112,14 +113,16 @@ est <- kde(x=feature_cnn_keep [, c('test_ref', 'test_pred_df')], H=H, compute.co
 # plot the contour levels
 cl<-contourLevels(est, prob=c(0.5, 0.05), approx=TRUE)
 png("plot/feature_extraction_scatter.png", width = 10, height = 10, units = "in", res = 300)
-plot(jitter(feature_cnn_keep $test_ref, 50), feature_cnn_keep $test_pred_df, asp = 1, cex.axis = 1, las = 1,
- ylim=c(-0.01, 1.01), xlim=c(-0.01, 1.01), col="#176BA0", xlab="Target", ylab="Prediction", pch=16)
+plot(jitter(feature_cnn_keep $test_ref, 50), feature_cnn_keep $test_pred_df, asp = 1, cex.axis = 1.2, las = 1,
+ ylim=c(-0.01, 1.01), xlim=c(-0.01, 1.01), col="#005285", xlab=" ", ylab=" ", pch=16)
+mtext("Targets", cex=1.5, side=1, line=2.5)
+mtext("Predictions", cex=1.5, side=2, line=2.5)
 par(new=TRUE)
 text(0.5, 1.1, labels = "Predictions with Feature Extraction", font = 2, cex = 2, xpd = NA)
 rug(feature_cnn_keep $test_ref, lwd = 0.2, ticksize = 0.015)
 rug(feature_cnn_keep $test_pred_df, side = 2, lwd = 0.2, ticksize = 0.015)
 plot(est,abs.cont=cl[1], labels=c(0.5),xlim=c(-0.01, 1.01), axes = FALSE, labcex=1, add=TRUE, lwd=1, col="grey10", xlab = '', ylab = '')
-plot(est,abs.cont=cl[2], labels=c(0.95),xlim=c(-0.01, 1.01), axes = FALSE, labcex=1, add=TRUE, lwd=1, col="grey40", xlab = '', ylab = '')
+plot(est,abs.cont=cl[2], labels=c(0.95),xlim=c(-0.01, 1.01), axes = FALSE, labcex=1, add=TRUE, lwd=1, col="#adadad", xlab = '', ylab = '')
 # nmae <- mean(abs(feature_cnn$test_ref - feature_cnn$test_pred_df))/ (max(feature_cnn$test_ref) - min(feature_cnn$test_ref)) * 100
 fit <- lm(feature_cnn$test_pred_df ~ feature_cnn$test_ref)
 cf <- round(coef(fit), 4) 
@@ -143,14 +146,16 @@ est <- kde(x=direct_cnn_keep [, c('test_ref', 'test_pred_df')], H=H, compute.con
 # plot the contour levels
 cl<-contourLevels(est, prob=c(0.5, 0.05), approx=TRUE)
 png("plot/direct_scatter.png", width = 10, height = 10, units = "in", res = 300)
-plot(jitter(direct_cnn_keep $test_ref, 50), direct_cnn_keep $test_pred_df, asp = 1, cex.axis = 1, las = 1,
- ylim=c(-0.01, 1.01), xlim=c(-0.01, 1.01), col="#19AADE", xlab="Target", ylab="Prediction", pch=16)
+plot(jitter(direct_cnn_keep $test_ref, 50), direct_cnn_keep $test_pred_df, asp = 1, cex.axis = 1.2, las = 1,
+ ylim=c(-0.01, 1.01), xlim=c(-0.01, 1.01), col="#00736d", xlab=" ", ylab=" ", pch=16)
+mtext("Targets", cex=1.5, side=1, line=2.5)
+mtext("Predictions", cex=1.5, side=2, line=2.5)
 par(new=TRUE)
 text(0.5, 1.1, labels = "Predictions with Direct CNN", font = 2, cex = 2, xpd = NA)
 rug(direct_cnn_keep $test_ref, lwd = 0.2, ticksize = 0.015)
 rug(direct_cnn_keep $test_pred_df, side = 2, lwd = 0.2, ticksize = 0.015)
 plot(est,abs.cont=cl[1], labels=c(0.5),xlim=c(-0.01, 1.01), axes = FALSE, labcex=1, add=TRUE, lwd=1, col="grey10", xlab = '', ylab = '')
-plot(est,abs.cont=cl[2], labels=c(0.95),xlim=c(-0.01, 1.01), axes = FALSE, labcex=1, add=TRUE, lwd=1, col="grey40", xlab = '', ylab = '')
+plot(est,abs.cont=cl[2], labels=c(0.95),xlim=c(-0.01, 1.01), axes = FALSE, labcex=1, add=TRUE, lwd=1, col="#adadad", xlab = '', ylab = '')
 # nmae <- mean(abs(direct_cnn$test_ref - direct_cnn$test_pred_df))/ (max(direct_cnn$test_ref) - min(direct_cnn$test_ref)) * 100
 fit <- lm(direct_cnn$test_pred_df ~ direct_cnn$test_ref)
 cf <- round(coef(fit), 4)
@@ -178,14 +183,16 @@ est <- kde(x=phylo_imputation_keep [, c('biotic', 'biotic_pred')], H=H, compute.
 # plot the contour levels
 cl<-contourLevels(est, prob=c(0.5, 0.05), approx=TRUE)
 png("plot/phylo_scatter.png", width = 10, height = 10, units = "in", res = 300)
-plot(jitter(phylo_imputation_keep$biotic, 50), phylo_imputation_keep $biotic_pred, asp = 1, cex.axis = 1, las = 1,
- ylim=c(-0.01, 1.01), xlim=c(-0.01, 1.01), col="#1DE48D", xlab="Target", ylab="Prediction", pch=16)
+plot(jitter(phylo_imputation_keep$biotic, 50), phylo_imputation_keep $biotic_pred, asp = 1, cex.axis = 1.2, las = 1,
+ ylim=c(-0.01, 1.01), xlim=c(-0.01, 1.01), col="#226306", xlab=" ", ylab=" ", pch=16)
+mtext("Targets", cex=1.5, side=1, line=2.5)
+mtext("Predictions", cex=1.5, side=2, line=2.5)
 par(new=TRUE)
-text(0.5, 1.1, labels = "Predictions with Phylogenetic CNN", font = 2, cex = 2, xpd = NA)
+text(0.5, 1.1, labels = "Predictions with Phylogenetic Information", font = 2, cex = 2, xpd = NA)
 rug(phylo_imputation_keep$biotic, lwd = 0.2, ticksize = 0.015)
 rug(phylo_imputation_keep$biotic_pred, side = 2, lwd = 0.2, ticksize = 0.015)
 plot(est,abs.cont=cl[1], labels=c(0.5),xlim=c(-0.01, 1.01), axes = FALSE, labcex=1, add=TRUE, lwd=1, col="grey10", xlab = '', ylab = '')
-plot(est,abs.cont=cl[2], labels=c(0.95),xlim=c(-0.01, 1.01), axes = FALSE, labcex=1, add=TRUE, lwd=1, col="grey40", xlab = '', ylab = '')
+plot(est,abs.cont=cl[2], labels=c(0.95),xlim=c(-0.01, 1.01), axes = FALSE, labcex=1, add=TRUE, lwd=1, col="#adadad", xlab = '', ylab = '')
 # nmae <- mean(abs(phylo_imputation$biotic - phylo_imputation$biotic_pred))/ (max(phylo_imputation$biotic) - min(phylo_imputation$biotic)) * 100
 fit <- lm(phylo_imputation$biotic_pred ~ phylo_imputation$biotic)
 cf <- round(coef(fit), 4)
@@ -203,8 +210,8 @@ auc <- roc(feature_extraction$test_ref, feature_extraction$test_pred_df)
 auc <- auc$auc
 # plot as two violin plots, one for test_ref=0 and one for test_ref=1
 ggplot(feature_extraction, aes(x=factor(test_ref), y=test_pred_df)) + geom_violin(fill="cyan4") + 
-    labs(x = "\nTarget ", y = "\nPrediction") + 
-    theme_classic() + theme(text = element_text(size = 10)) + theme(axis.text = element_text(size = 10)) + 
+    labs(x = "\nTargets ", y = "\nPredictions") + 
+    theme_classic() + theme(text = element_text(size = 20)) + theme(axis.text = element_text(size = 15, colour = "black")) + 
     geom_text(data=data.frame(), aes(label = paste0("AUC = ", round(auc, 4))), x = Inf, y = Inf, size=10,
             hjust = 1, vjust = 1)
 
@@ -220,21 +227,23 @@ seed_dispersal_mode <- seed_dispersal_mode[, c("species", "biotic")]
 tree <- read.tree("data/Phylogeny/seed_plant_phylo.tre")
 # plot the tree without species names
 # color the branches by biotic dispersal
-ggtree(tree, layout='circular', branch.length = 'none') %<+% seed_dispersal_mode +
- aes(color = biotic) + 
- scale_color_continuous(name = 'Biotic Disperse',
-                          limits=c(0, 1),
-                         low = "cyan", high = "#0a4d4d") 
+# ggtree(tree, layout='circular', branch.length = 'none') %<+% seed_dispersal_mode +
+#  aes(color = biotic) + 
+#  scale_color_continuous(name = 'Biotic Disperse',
+#                           limits=c(0, 1),
+#                          low = "cyan", high = "#0a4d4d") 
 #  theme(legend.position = c(0.9, 1),
 #         legend.justification = c(0,1),
 #         legend.title=element_text(size=0.00001),legend.text=element_text(size=0.00001))
 
 # color the nodes by biotic dispersal
 ggtree(tree, layout='circular', branch.length = 'none', color='grey') %<+% seed_dispersal_mode +
-geom_tippoint(aes(color = biotic), size = 2) +
+# geom_tippoint(aes(color = biotic), size = 0.6, stroke = 0, shape = 16) +
+geom_fruit(geom=geom_tile, mapping=aes(color = biotic), height=1, offset=0.2) +
  scale_color_continuous(name = 'Biotic Disperse',
-                          limits=c(0, 1),
-                         low = "cyan", high = "#0a4d4d")
+                        limits=c(0, 1),
+                        low = "cyan", high = "#0a4747") + 
+                        theme(legend.text = element_text(size = 10), legend.title = element_text(size = 15))
 # save the plot
 ggsave("plot/phylogenetic_tree.png", width = 10, height = 10, units = "in", dpi = 300)
 
