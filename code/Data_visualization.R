@@ -16,7 +16,7 @@ set.seed(123)
 
 #### Calculate R squrared of CNN output based on species average ####
 # read data
-feature_cnn <- read.csv("data/Feature_CNN_Test_results_31.csv", header = T, sep = ",")
+feature_cnn <- read.csv("data/Feature_CNN_Test_results_50.csv", header = T, sep = ",")
 direct_cnn <- read.csv("data/Direct_CNN_test_results_44.csv", header = T, sep = ",")
 # calculate average of predictions within species
 feature_cnn_avg <- feature_cnn %>% group_by(species) %>% summarise(mean_pred = mean(test_pred_df), target = mean(test_ref))
@@ -88,7 +88,7 @@ direct_cnn_0_8_R2
 data <- data.frame(x = c("0-0.2", "0.2-0.4", "0.4-0.6", "0.6-0.8", "0.8-1"), y = c(direct_cnn_0_2_R2, direct_cnn_0_4_R2, direct_cnn_0_6_R2, direct_cnn_0_8_R2, direct_cnn_0_8_R2), name=c("R2", "R2", "R2", "R2", "R2"))
 # plot
 ggplot(data, aes(x, y)) + geom_point(size=6, color="cyan4") + geom_line(lwd=1, color="cyan4", aes(group = name), linetype='dashed') + 
-    labs(x = "\nPossibility ", y = "\nR squared") + 
+    labs(x = "\nEstimated probability that image \ncontains fruits or seeds ", y = "\nR squared value of that image \nfrom the baseline CNN model") + 
     theme_classic() + theme(text = element_text(size = 20)) + theme(axis.text = element_text(size = 15, colour = "black")) 
 
 # save the plot
